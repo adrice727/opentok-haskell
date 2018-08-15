@@ -2,7 +2,9 @@
 
 module Archive where
 
-import Data.Aeson
+import           Prelude                        ( )
+import           Prelude.Compat
+import           Data.Aeson
 
 data ArchiveMode = Manual | Always
 instance Show ArchiveMode where

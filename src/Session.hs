@@ -3,13 +3,22 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE TemplateHaskell #-}
 
+module Session
+  ( CreateSessionResponse
+  , Session
+  , SessionOptions
+  , sessionOpts
+  , SessionProperties
+  , fromProps
+  )
+where
 
-module Session (CreateSessionResponse, Session, SessionOptions, sessionOpts, fromProps) where
-
-import Archive
-import Data.Aeson
-import Data.Aeson.Casing (snakeCase)
-import GHC.Generics
+import           Prelude                        ()
+import           Prelude.Compat
+import           Archive
+import           Data.Aeson
+import           Data.Aeson.Casing              ( snakeCase )
+import           GHC.Generics
 
 data MediaMode = Routed | Relayed
 instance Show MediaMode where
@@ -33,8 +42,8 @@ instance ToJSON SessionOptions where
   toJSON = genericToJSON defaultOptions
     { omitNothingFields = True, fieldLabelModifier = drop 1 }
 
-sessionOpts:: SessionOptions
-sessionOpts = SessionOptions Routed Manual Nothing
+sessionOpts :: SessionOptions
+sessionOpts = SessionOptions Relayed Manual Nothing
 
 data Session = Session {
   apiKey :: String,
@@ -44,12 +53,12 @@ data Session = Session {
 } deriving (Show)
 
 fromProps :: SessionOptions -> SessionProperties -> Session
-fromProps opts props = Session {
-  apiKey =  _projectId props,
-  sessionId = _sessionId props,
-  mediaMode = _mediaMode opts,
-  archiveMode = _archiveMode opts
-}
+fromProps opts props = Session
+  { apiKey      = _projectId props
+  , sessionId   = _sessionId props
+  , mediaMode   = _mediaMode opts
+  , archiveMode = _archiveMode opts
+  }
 
 data SessionProperties = SessionProperties {
   _sessionId :: String,

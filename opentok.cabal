@@ -9,7 +9,7 @@ copyright: 2018 Aaron Rice
 
 library
     default-language:   Haskell2010
-    exposed-modules:    OpenTok, Request, Session, Archive, OTError
+    exposed-modules:    OpenTok, Request, Session, Archive, Error
     other-modules:      Client
     hs-source-dirs:     src
     build-depends:
@@ -20,7 +20,6 @@ library
       , aeson-compat
       , base64-bytestring
       , bytestring
-      , case-insensitive
       , containers
       , convertible
       , http-client
@@ -32,7 +31,6 @@ library
       , monad-time
       , unordered-containers
       , uuid
-      , string-conversions
       , text
       , time
       , transformers

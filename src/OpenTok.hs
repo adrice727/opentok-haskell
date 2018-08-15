@@ -1,11 +1,16 @@
-module OpenTok (opentok, createSession) where
+{-# LANGUAGE OverloadedStrings #-}
 
-import Session
--- import OTError
+module OpenTok
+  ( opentok
+  , OpenTok.createSession
+  )
+where
 
--- import qualified Request
-import qualified Client
--- import Archive
+import           Prelude                        ( )
+import           Prelude.Compat
+import           Session
+import           Client
+import           Error
 
 data OpenTok = OpenTok {
   apiKey :: String,
@@ -13,15 +18,16 @@ data OpenTok = OpenTok {
 }
 
 instance Show OpenTok where
-  show ot = "OpenTok { APIKey: " ++ (apiKey ot) ++ ", Secret: " ++ (unwords $ fmap (\_ -> "*") $ secret ot) ++ " }"
+  show ot = "OpenTok { APIKey: " <> (apiKey ot) <> ", Secret: *_*_*_*_*_*  }"
 
 opentok :: String -> String -> OpenTok
 opentok k s = OpenTok k s
 
-createSession :: OpenTok -> SessionOptions -> IO (Either String CreateSessionResponse)
-createSession ot = do
+createSession :: OpenTok -> SessionOptions -> IO (Either OTError Session)
+createSession ot opts = do
   let client = Client.Client (apiKey ot) (secret ot)
-  Client.createSession client
+  sessionProps <- Client.createSession client opts
+  pure $ fmap (\props -> fromProps opts props) sessionProps
 
 
   -- generateToken :: (OpenTok ot) => Maybe SessionOptions -> Session
