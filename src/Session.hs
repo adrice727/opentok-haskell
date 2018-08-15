@@ -1,10 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Session (Session, SessionOptions, defaultSessionOptions) where
+module Session (CreateSessionResponse, Session, SessionOptions, sessionOpts) where
 
 import Archive
 import Data.Aeson
+import Data.Aeson.Casing (aesonPrefix, camelCase)
 import GHC.Generics
 
 data MediaMode = Routed | Relayed
@@ -28,8 +29,20 @@ instance ToJSON SessionOptions where
   toJSON = genericToJSON defaultOptions
     { omitNothingFields = True }
 
-defaultSessionOptions :: SessionOptions
-defaultSessionOptions = SessionOptions Relayed Manual Nothing
+sessionOpts:: SessionOptions
+sessionOpts = SessionOptions Relayed Manual Nothing
 
 data Session = Session { apiKey :: String, sessionId :: String } deriving (Show)
 
+data CreateSessionProperties = CreateSessionProperties {
+  session_id :: String,
+  project_id :: String,
+  create_dt :: String,
+  media_server_url :: String
+} deriving (Generic, Show)
+
+instance FromJSON CreateSessionProperties where
+  parseJSON = genericParseJSON $ aesonPrefix camelCase
+
+data CreateSessionResponse = CreateSessionResponse [CreateSessionProperties] deriving (Show, Generic)
+instance FromJSON CreateSessionResponse

@@ -9,16 +9,20 @@ copyright: 2018 Aaron Rice
 
 library
     default-language:   Haskell2010
-    exposed-modules:    OpenTokSDK, OpenTok, Request, Session, Client, Archive
+    exposed-modules:    OpenTok, Request, Session, Archive, OTError
+    other-modules:      Client
     hs-source-dirs:     src
     build-depends:
       base >=4.7 && <5
       , base-compat
       , aeson
+      , aeson-casing
       , aeson-compat
+      , base64-bytestring
       , bytestring
       , case-insensitive
       , containers
+      , convertible
       , http-client
       , http-client-tls
       , http-types
@@ -27,6 +31,8 @@ library
       , lens
       , monad-time
       , unordered-containers
+      , uuid
+      , string-conversions
       , text
       , time
       , transformers

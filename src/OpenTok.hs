@@ -1,6 +1,7 @@
-module OpenTok (opentok) where
+module OpenTok (opentok, createSession) where
 
 import Session
+import OTError
 
 -- import qualified Request
 import qualified Client
@@ -11,16 +12,17 @@ data OpenTok = OpenTok {
   secret :: String
 }
 
+instance Show OpenTok where
+  show ot = "OpenTok { APIKey: " ++ (apiKey ot) ++ ", Secret: " ++ (unwords $ fmap (\_ -> "*") $ secret ot) ++ " }"
+
 opentok :: String -> String -> OpenTok
-opentok key secret = Opentok key secret
+opentok k s = OpenTok k s
 
--- run :: IO ()
--- run = Request.send
-
-createSession :: OpenTok -> SessionOptions -> IO Session
+createSession :: OpenTok -> SessionOptions -> IO (Either OTError CreateSessionResponse)
 createSession ot = do
   let client = Client.Client (apiKey ot) (secret ot)
   Client.createSession client
+
 
   -- generateToken :: (OpenTok ot) => Maybe SessionOptions -> Session
   -- startArchive :: (OpenTok ot) => Maybe SessionOptions -> Session
