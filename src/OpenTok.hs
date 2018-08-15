@@ -1,7 +1,7 @@
 module OpenTok (opentok, createSession) where
 
 import Session
-import OTError
+-- import OTError
 
 -- import qualified Request
 import qualified Client
@@ -18,7 +18,7 @@ instance Show OpenTok where
 opentok :: String -> String -> OpenTok
 opentok k s = OpenTok k s
 
-createSession :: OpenTok -> SessionOptions -> IO (Either OTError CreateSessionResponse)
+createSession :: OpenTok -> SessionOptions -> IO (Either String CreateSessionResponse)
 createSession ot = do
   let client = Client.Client (apiKey ot) (secret ot)
   Client.createSession client
