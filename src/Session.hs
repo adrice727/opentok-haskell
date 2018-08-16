@@ -1,11 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 module Session
   ( CreateSessionResponse
   , Session
+  , SessionId
   , SessionOptions
   , sessionOpts
   , SessionProperties
@@ -19,6 +18,8 @@ import           Archive
 import           Data.Aeson
 import           Data.Aeson.Casing              ( snakeCase )
 import           GHC.Generics
+
+type SessionId = String
 
 data MediaMode = Routed | Relayed
 instance Show MediaMode where

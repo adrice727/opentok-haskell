@@ -14,8 +14,8 @@ import           Crypto.JWT
 import           Data.UUID                      ( toText )
 import           Data.UUID.V4
 import           Data.Aeson                     ( encode, eitherDecode, FromJSON)
-import qualified Data.ByteString.Char8         as C8
-import           Data.ByteString.Lazy          as L8 ( toStrict, ByteString )
+import           Data.ByteString.Char8          ( pack )
+import           Data.ByteString.Lazy           ( toStrict, ByteString )
 import           Data.Convertible               ( convert )
 import           Data.HashMap.Strict           as HM
 import           Data.Time.Clock
@@ -33,7 +33,7 @@ data APIError = APIError {
   description :: String
 } deriving (Show, Generic)
 
-errorMessage :: L8.ByteString -> String
+errorMessage :: ByteString -> String
 errorMessage b = do
   let attempt = eitherDecode b :: Either String APIError
   case attempt of
@@ -84,7 +84,7 @@ signJWT :: JWK -> ClaimsSet -> IO (Either JWTError SignedJWT)
 signJWT key claims = runExceptT $ do
   signClaims key (newJWSHeader ((), HS256)) claims
 
-decodeBody :: L8.ByteString -> (Either OTError [SessionProperties])
+decodeBody :: ByteString -> (Either OTError [SessionProperties])
 decodeBody b = do
   let attempt = (eitherDecode b) :: Either String [SessionProperties]
   left (\failure -> otError $ "Failed to decode create session response" <> failure) attempt
@@ -92,7 +92,7 @@ decodeBody b = do
 createSession :: Client -> SessionOptions -> IO (Either OTError SessionProperties)
 createSession c opts = do
   claims <- mkClaims (_apiKey c)
-  let key = fromOctets (C8.pack $ _secret c)
+  let key = fromOctets (pack $ _secret c)
   eitherJWT <- signJWT key claims
   case eitherJWT of
     Left  _         -> pure $ Left $ otError "Failed to create JSON Web Token"
