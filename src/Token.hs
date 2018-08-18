@@ -18,7 +18,6 @@ import           Data.UUID.V4                   ( nextRandom )
 import qualified Data.Text                     as T
 import           GHC.Generics
 import           Network.HTTP.Types             ( renderQuery )
--- import qualified Data.String.UTF8 as UTF8 ( fromString )
 import           Error
 import           Util
 import           Types
@@ -55,12 +54,6 @@ sanitize = map
       | otherwise -> c
   )
 
--- data SessionComponents = SessionComponents {
---   _apiKey :: APIKey,
---   _location :: String,
---   _create_time :: String,
--- }
-
 -- |Extract an API key from a session Id and compare against provided key
 validSessionId :: SessionId -> APIKey -> Bool
 validSessionId sessionId key =
@@ -77,32 +70,6 @@ validExpireTime opts = case expireTime opts of
     now <- getCurrentTime
     let maxExpire = addUTCTime (30 * 86400) now
     pure $ expire >= now && expire <= maxExpire
-
-
-
-
-
--- function validSessionId(sessionId) {
---   var fields;
---   // remove sentinal (e.g. '1_', '2_')
---   sessionId = sessionId.substring(2);
---   // replace invalid base64 chars
---   sessionId = sessionId.replace(/-/g, '+').replace(/_/g, '/');
---   // base64 decode
---   if (typeof Buffer.from === 'function') {
---     sessionId = Buffer.from(sessionId, 'base64').toString('ascii');
---   } else {
---     sessionId = new Buffer(sessionId, 'base64').toString('ascii');
---   }
---   // separate fields
---   fields = sessionId.split('~');
---   return {
---     apiKey: fields[1],
---     location: fields[2],
---     create_time: new Date(fields[3])
---   };
--- }
-
 
 encodeToken :: APIKey -> APISecret -> TokenOptions -> IO Token
 encodeToken key secret opts = do
@@ -124,21 +91,6 @@ encodeToken key secret opts = do
   print $ showDigest signed
   pure $ tokenSentinel ++ B64.decode decoded
 
--- // Prevent mutating value passed in
---   tokenData = _.clone(tokenData);
-
---   _.defaults(tokenData, {
---     create_time: Math.round(timestamp.now()),
---     expire_time: Math.round(timestamp.now('1d')),
---     nonce: nonce(),
---     role: 'publisher'
---   });
-
---   var dataString = querystring.stringify(tokenData),
---       sig = signString(dataString, apiSecret),
---       decoded = new Buffer("partner_id="+apiKey+"&sig="+sig+":"+dataString, 'utf8');
---   return TOKEN_SENTINEL + decoded.toString('base64');
-
 createToken
   :: APIKey
   -> APISecret
@@ -153,5 +105,3 @@ createToken key secret sessionId opts = do
     (_, False) -> pure $ Left $ error
       "Token expireTime must be between now and 30 days from now"
     (_, _) -> fmap Right (encodeToken key secret opts)
-
-
