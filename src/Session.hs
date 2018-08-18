@@ -2,8 +2,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 
 module Session
-  ( CreateSessionResponse
-  , Session
+  ( Session
   , SessionId
   , SessionOptions
   , sessionOpts
@@ -17,9 +16,9 @@ import           Prelude.Compat
 import           Archive
 import           Data.Aeson
 import           Data.Aeson.Casing              ( snakeCase )
+import           Data.Aeson.Types
 import           GHC.Generics
-
-type SessionId = String
+import           Types
 
 data MediaMode = Routed | Relayed
 instance Show MediaMode where
@@ -30,7 +29,6 @@ instance ToJSON MediaMode where
   toJSON Relayed = object [ "value" .= String "relayed" ]
   toJSON Routed  = object [ "value" .= String "routed" ]
 
-type IPAddress = String
 
 data SessionOptions = SessionOptions {
   _mediaMode :: MediaMode,
@@ -71,5 +69,3 @@ data SessionProperties = SessionProperties {
 instance FromJSON SessionProperties where
   parseJSON = genericParseJSON $ defaultOptions { fieldLabelModifier = snakeCase . drop 1 }
 
-data CreateSessionResponse = CreateSessionResponse [SessionProperties] deriving (Show, Generic)
-instance FromJSON CreateSessionResponse

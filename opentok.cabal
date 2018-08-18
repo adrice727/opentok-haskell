@@ -10,7 +10,7 @@ copyright: 2018 Aaron Rice
 library
     default-language:   Haskell2010
     exposed-modules:    OpenTok, Request, Session, Archive, Error, Token
-    other-modules:      Client, Types
+    other-modules:      Client, Types, Util
     hs-source-dirs:     src
     build-depends:
       base >=4.7 && <5
@@ -18,10 +18,12 @@ library
       , aeson
       , aeson-casing
       , aeson-compat
-      , base64-bytestring
+      , base64-string
       , bytestring
       , containers
       , convertible
+      , cryptohash-cryptoapi
+      , crypto-api
       , http-client
       , http-client-tls
       , http-types
@@ -29,6 +31,7 @@ library
       , jose
       , lens
       , monad-time
+      , SHA
       , unordered-containers
       , uuid
       , text

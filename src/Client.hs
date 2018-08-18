@@ -11,21 +11,21 @@ import           Control.Lens.Operators
 import           Control.Monad.Time
 import           Control.Monad.Trans.Except
 import           Crypto.JWT
+import           Data.Semigroup                 ( (<>) )
 import           Data.UUID                      ( toText )
 import           Data.UUID.V4
 import           Data.Aeson                     ( encode, eitherDecode, FromJSON)
 import           Data.ByteString.Char8          ( pack )
 import           Data.ByteString.Lazy           ( toStrict, ByteString )
-import           Data.Convertible               ( convert )
 import           Data.HashMap.Strict           as HM
 import           Data.Time.Clock
-import           GHC.Generics
+import           GHC.Generics                   ( Generic )
 import           Network.HTTP.Client
 import           Network.HTTP.Client.TLS
 import           Network.HTTP.Types.Status      ( statusCode )
-import           System.Posix.Types             ( EpochTime )
 import           Session
 import           Error
+import           Util
 
 data APIError = APIError {
   code :: Int,
@@ -45,17 +45,8 @@ instance FromJSON APIError
 apiBase :: String
 apiBase = "https://api.opentok.com"
 
-maybeToEither :: a -> Maybe b -> Either a b
-maybeToEither e = maybe (Left e) (\x -> Right x)
-
-utcToEpoch :: UTCTime -> EpochTime
-utcToEpoch = convert
-
-epochToUTC :: EpochTime -> UTCTime
-epochToUTC = convert
-
 expireTime :: UTCTime -> UTCTime
-expireTime t = epochToUTC $ (utcToEpoch t) + 60
+expireTime t = epochToUTC $ utcToEpoch t + 60
 
 data Client = Client {
   _apiKey :: String,
@@ -73,20 +64,17 @@ mkClaims projectKey = do
   pure
     $  emptyClaimsSet
     &  claimIss .~ preview stringOrUri (projectKey :: String)
-    &  claimIat .~ Just (NumericDate now')
-    &  claimExp .~ Just (NumericDate later)
-    &  claimJti .~ Just (toText uuid)
+    &  claimIat ?~ NumericDate now'
+    &  claimExp ?~ NumericDate later
+    &  claimJti ?~ toText uuid
     &  unregisteredClaims %~ HM.insert "ist" "project"
 
-
-
 signJWT :: JWK -> ClaimsSet -> IO (Either JWTError SignedJWT)
-signJWT key claims = runExceptT $ do
-  signClaims key (newJWSHeader ((), HS256)) claims
+signJWT key claims = runExceptT $ signClaims key (newJWSHeader ((), HS256)) claims
 
-decodeBody :: ByteString -> (Either OTError [SessionProperties])
+decodeBody :: ByteString -> Either OTError [SessionProperties]
 decodeBody b = do
-  let attempt = (eitherDecode b) :: Either String [SessionProperties]
+  let attempt = eitherDecode b :: Either String [SessionProperties]
   left (\failure -> otError $ "Failed to decode create session response" <> failure) attempt
 
 createSession :: Client -> SessionOptions -> IO (Either OTError SessionProperties)
@@ -108,10 +96,11 @@ createSession c opts = do
             }
       response <- httpLbs request manager
       let body = responseBody response
-      case (statusCode $ responseStatus response) of
+      case statusCode $ responseStatus response of
         200 -> pure $ fmap head $ decodeBody body
-        403 -> pure $ Left $ otError $ "An authentication error occurred: " <> (errorMessage body)
-        500 -> pure $ Left $ otError $ "A server error occurred: " <> (errorMessage body)
+        -- 200 -> pure $ fmap (\r -> r ^? element 1) $ decodeBody body   ^^^ avoid using head
+        403 -> pure $ Left $ otError $ "An authentication error occurred: " <> errorMessage body
+        500 -> pure $ Left $ otError $ "A server error occurred: " <> errorMessage body
         _ -> pure $ Left $ otError "An unrecognized error occurred."
 
 
