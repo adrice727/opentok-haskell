@@ -108,7 +108,7 @@ encodeToken key secret sessionId opts = do
   let sig  = SHA.showDigest $ SHA.hmacSha1 (L8.pack secret) (L8.fromStrict dataString)
   let decoded =
         "partner_id=" <> key <> "&sig=" <> sig <> ":" <> C8.unpack dataString :: String
-  pure $ tokenSentinel <> B64.encode decoded
+  pure $ formatToken $ tokenSentinel <> B64.encode decoded
 
 -- | Generate a new token for an OpenTok session using the provided token options
 generate

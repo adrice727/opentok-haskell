@@ -1,1 +1,1 @@
-## An OpenTok Server SDK for Haskell
+## An [OpenTok](https://tokbox.com/developer/sdks/server/) Server SDK for Haskell
