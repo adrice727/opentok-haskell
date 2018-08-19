@@ -97,7 +97,7 @@ createSession c opts = do
       response <- httpLbs request manager
       let body = responseBody response
       case statusCode $ responseStatus response of
-        200 -> pure $ fmap head $ decodeBody body
+        200 -> pure $ head <$> decodeBody body
         -- 200 -> pure $ fmap (\r -> r ^? element 1) $ decodeBody body   ^^^ avoid using head
         403 -> pure $ Left $ otError $ "An authentication error occurred: " <> errorMessage body
         500 -> pure $ Left $ otError $ "A server error occurred: " <> errorMessage body

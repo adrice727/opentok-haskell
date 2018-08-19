@@ -24,25 +24,23 @@ data OpenTok = OpenTok {
 instance Show OpenTok where
   show ot = "OpenTok { APIKey: " <> apiKey ot <> ", Secret: *_*_*_*_*_*  }"
 
--- |Get your key and secret from https://tokbox.com/account/
+-- | Get your key and secret from https://tokbox.com/account/
 opentok :: APIKey -> APISecret -> OpenTok
 opentok = OpenTok
 
--- |Generate a new OpenTok session
+-- | Generate a new OpenTok Session
 createSession :: OpenTok -> SessionOptions -> IO (Either OTError Session)
 createSession ot opts = do
   let client = Client.Client (apiKey ot) (secret ot)
   sessionProps <- Client.createSession client opts
-  pure $ fmap (fromProps opts) sessionProps
+  pure $ fromProps opts <$> sessionProps
 
--- |Generate a token. Use the Role value appropriate for the user.
+-- | Generate a token. Use the Role value appropriate for the user.
 generateToken :: OpenTok -> SessionId -> TokenOptions -> IO (Either OTError Token)
-generateToken ot = createToken (apiKey ot) (secret ot)
+generateToken ot = Token.generate (apiKey ot) (secret ot)
 
 
 
-
-  -- generateToken :: (OpenTok ot) => Maybe SessionOptions -> Session
   -- startArchive :: (OpenTok ot) => Maybe SessionOptions -> Session
   -- stopArchive :: (OpenTok ot) => Maybe SessionOptions -> Session
   -- deleteArchive :: (OpenTok ot) => Maybe SessionOptions -> Session

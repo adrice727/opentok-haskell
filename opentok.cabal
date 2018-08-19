@@ -22,8 +22,6 @@ library
       , bytestring
       , containers
       , convertible
-      , cryptohash-cryptoapi
-      , crypto-api
       , http-client
       , http-client-tls
       , http-types
@@ -31,9 +29,10 @@ library
       , jose
       , lens
       , monad-time
-      , SHA
       , unordered-containers
+      , SHA >= 1.6.4.2
       , uuid
+      , utf8-string >=1.0.1.1
       , text
       , time
       , transformers

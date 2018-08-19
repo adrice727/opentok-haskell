@@ -21,5 +21,5 @@ utcToBS :: UTCTime -> ByteString
 utcToBS = epochToBS . utcToEpoch
 
 days :: NominalDiffTime -> NominalDiffTime
-days n = n * 86400
+days = (*) 86400
 

@@ -29,7 +29,6 @@ instance ToJSON MediaMode where
   toJSON Relayed = object [ "value" .= String "relayed" ]
   toJSON Routed  = object [ "value" .= String "routed" ]
 
-
 data SessionOptions = SessionOptions {
   _mediaMode :: MediaMode,
   _archiveMode :: ArchiveMode,
