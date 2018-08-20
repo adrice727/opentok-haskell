@@ -14,28 +14,28 @@ library
     hs-source-dirs:     src
     build-depends:
       base >=4.7 && <5
-      , base-compat
-      , aeson
-      , aeson-casing
-      , aeson-compat
-      , base64-string
-      , bytestring
-      , containers
-      , convertible
-      , http-client
-      , http-client-tls
-      , http-types
-      , iproute
-      , jose
-      , lens
-      , monad-time
-      , unordered-containers
+      , base-compat >= 0.9.0
+      , aeson >= 1.1.2.0
+      , aeson-casing >= 0.1.0.5
+      , aeson-compat >= 0.3.4.0
+      , base64-string >= 0.2
+      , bytestring >= 0.10.0.0
+      , containers >= 0.5.7.1
+      , convertible >= 1.0.10.0
+      , http-client >= 0.5.0
+      , http-client-tls >= 0.3.0
+      , http-types >= 0.6.0
+      , iproute >= 1.4.0
+      , jose >= 0.6.0.0
+      , lens >= 4.10
+      , monad-time >= 0.2.0.0
+      , unordered-containers >= 0.2.0
       , SHA >= 1.6.4.2
-      , uuid
+      , uuid >= 1.3.13
       , utf8-string >=1.0.1.1
-      , text
-      , time
-      , transformers
+      , text >= 1.0.0.0
+      , time >=1.4.0.1 && <1.9
+      , transformers >= 0.5.2.0
     if flag(documentation)
         build-depends: hscolour == 1.20.*
 

@@ -88,7 +88,7 @@ cleanTokenOptions = filter (\(_, v) -> isJust v)
 formatToken :: String -> String
 formatToken = filter (/= '\n')
 
--- | Create SHA256 encoded token
+-- | Create a SHA1 encoded token
 encodeToken :: APIKey -> APISecret -> SessionId -> TokenOptions -> IO Token
 encodeToken key secret sessionId opts = do
   now   <- getCurrentTime
@@ -122,5 +122,5 @@ generate key secret sessionId opts = do
   expirationValid <- validExpireTime opts
   case (sessionIdValid, expirationValid) of
     (False, _) -> pure $ Left $ error "Failed to validate provided SessionId"
-    (_, False) -> pure $ Left $ error"Token expireTime must be between now and 30 days from now"
+    (_, False) -> pure $ Left $ error "Token expireTime must be between now and 30 days from now"
     (_, _) -> Right <$> encodeToken key secret sessionId opts
