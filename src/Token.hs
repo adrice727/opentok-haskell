@@ -28,7 +28,6 @@ import           Data.UUID.V4                   ( nextRandom )
 import qualified Data.Text                     as T
 import           GHC.Generics
 import           Network.HTTP.Types             ( renderQuery )
-import           Error
 import           Util
 import           Types
 

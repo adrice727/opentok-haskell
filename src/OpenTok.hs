@@ -2,8 +2,10 @@
 
 module OpenTok
   ( opentok
-  , OpenTok.createSession
-  , OpenTok.generateToken
+  , Session
+  , OpenTok
+  , createSession
+  , generateToken
   )
 where
 
@@ -12,30 +14,45 @@ import           Prelude.Compat
 import           Data.Semigroup                 ( (<>) )
 import           Session
 import           Client
-import           Error
 import           Token
 import           Types
 
+-- | Represents an OpenTok project.
+--
+-- Get your project key and secret from https://tokbox.com/account/
 data OpenTok = OpenTok {
-  apiKey :: String,
-  secret :: String
+  apiKey :: APIKey,
+  secret :: APISecret,
+  client :: Client
 }
 
 instance Show OpenTok where
   show ot = "OpenTok { APIKey: " <> apiKey ot <> ", Secret: *_*_*_*_*_*  }"
 
--- | Get your key and secret from https://tokbox.com/account/
+-- | Get an OpenTok project
+--
+-- > ot = opentok "my_api_key" "my_api_secret"
+--
 opentok :: APIKey -> APISecret -> OpenTok
-opentok = OpenTok
+opentok k s = OpenTok k s (Client k s)
 
 -- | Generate a new OpenTok Session
+--
+-- @
+-- options = sessionOpts { mediaMode = Routed }
+-- session <- createSession ot sessionOpts
+-- @
+--
 createSession :: OpenTok -> SessionOptions -> IO (Either OTError Session)
-createSession ot opts = do
-  let client = Client.Client (apiKey ot) (secret ot)
-  sessionProps <- Client.createSession client opts
-  pure $ fromProps opts <$> sessionProps
+createSession ot = Session.create (client ot)
 
--- | Generate a token. Use the Role value appropriate for the user.
+-- | Generate a token.
+--
+-- @
+-- let options = tokenOpts { connectionData = "name:tim" }
+-- token <- generateToken ot options
+-- @
+--
 generateToken :: OpenTok -> SessionId -> TokenOptions -> IO (Either OTError Token)
 generateToken ot = Token.generate (apiKey ot) (secret ot)
 

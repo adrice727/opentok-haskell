@@ -1,8 +1,11 @@
 module Util where
 
+import           Control.Arrow
 import           Data.Time.Clock
 import           Data.Convertible               ( convert )
-import           Data.ByteString.Char8          ( pack, ByteString )
+import           Data.ByteString.Char8          ( pack
+                                                , ByteString
+                                                )
 import           System.Posix.Types             ( EpochTime )
 
 maybeToEither :: a -> Maybe b -> Either a b
@@ -23,3 +26,5 @@ utcToBS = epochToBS . utcToEpoch
 days :: NominalDiffTime -> NominalDiffTime
 days = (*) 86400
 
+mapEither :: (a -> a) -> (b -> b) -> Either a b -> Either a b
+mapEither f g = left f >>> right g

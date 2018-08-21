@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstrainedClassMethods #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -5,7 +6,7 @@ module Client where
 
 import           Prelude                        ( )
 import           Prelude.Compat
-import           Control.Arrow                  ( left )
+-- import           Control.Arrow                  ( left )
 import           Control.Lens.Combinators
 import           Control.Lens.Operators
 import           Control.Monad.Time
@@ -14,18 +15,26 @@ import           Crypto.JWT
 import           Data.Semigroup                 ( (<>) )
 import           Data.UUID                      ( toText )
 import           Data.UUID.V4
-import           Data.Aeson                     ( encode, eitherDecode, FromJSON)
+import           Data.Aeson                     ( encode
+                                                , eitherDecode
+                                                , FromJSON
+                                                , ToJSON
+                                                )
 import           Data.ByteString.Char8          ( pack )
-import           Data.ByteString.Lazy           ( toStrict, ByteString )
+import           Data.ByteString.Lazy           ( toStrict
+                                                , ByteString
+                                                )
 import           Data.HashMap.Strict           as HM
 import           Data.Time.Clock
 import           GHC.Generics                   ( Generic )
 import           Network.HTTP.Client
 import           Network.HTTP.Client.TLS
 import           Network.HTTP.Types.Status      ( statusCode )
-import           Session
-import           Error
+
+import           Types
 import           Util
+
+type Path = String
 
 data APIError = APIError {
   code :: Int,
@@ -33,14 +42,14 @@ data APIError = APIError {
   description :: String
 } deriving (Show, Generic)
 
+instance FromJSON APIError
+
 errorMessage :: ByteString -> String
 errorMessage b = do
   let attempt = eitherDecode b :: Either String APIError
   case attempt of
-    Left _ -> ""
+    Left  _ -> ""
     Right e -> message e
-
-instance FromJSON APIError
 
 apiBase :: String
 apiBase = "https://api.opentok.com"
@@ -63,45 +72,47 @@ mkClaims projectKey = do
   let later = expireTime now
   pure
     $  emptyClaimsSet
-    &  claimIss .~ preview stringOrUri (projectKey :: String)
-    &  claimIat ?~ NumericDate now'
-    &  claimExp ?~ NumericDate later
-    &  claimJti ?~ toText uuid
-    &  unregisteredClaims %~ HM.insert "ist" "project"
+    &  claimIss
+    .~ preview stringOrUri (projectKey :: String)
+    &  claimIat
+    ?~ NumericDate now'
+    &  claimExp
+    ?~ NumericDate later
+    &  claimJti
+    ?~ toText uuid
+    &  unregisteredClaims
+    %~ HM.insert "ist" "project"
 
 signJWT :: JWK -> ClaimsSet -> IO (Either JWTError SignedJWT)
-signJWT key claims = runExceptT $ signClaims key (newJWSHeader ((), HS256)) claims
+signJWT key claims =
+  runExceptT $ signClaims key (newJWSHeader ((), HS256)) claims
 
-decodeBody :: ByteString -> Either OTError [SessionProperties]
-decodeBody b = do
-  let attempt = eitherDecode b :: Either String [SessionProperties]
-  left (\failure -> otError $ "Failed to decode create session response" <> failure) attempt
-
-createSession :: Client -> SessionOptions -> IO (Either OTError SessionProperties)
-createSession c opts = do
-  claims <- mkClaims (_apiKey c)
-  let key = fromOctets (pack $ _secret c)
+request :: (ToJSON a) => Client -> Path -> a -> IO (Either OTError ByteString)
+request client p opts = do
+  claims <- mkClaims (_apiKey client)
+  let key = fromOctets (pack $ _secret client)
   eitherJWT <- signJWT key claims
   case eitherJWT of
-    Left  _         -> pure $ Left $ otError "Failed to create JSON Web Token"
+    Left  _         -> pure $ Left "Failed to create JSON Web Token"
     Right signedJWT -> do
-      initialRequest <- parseRequest "https://api.opentok.com/session/create"
+      initialRequest <- parseRequest $ "https://api.opentok.com" <> p
       manager        <- newManager tlsManagerSettings
-      let request = initialRequest
+      let req = initialRequest
             { method         = "POST"
             , requestBody    = RequestBodyLBS $ encode opts
             , requestHeaders = [ ("Accept", "application/json")
-                               , ( "X-OPENTOK-AUTH" , toStrict $ encodeCompact signedJWT)
+                               , ( "X-OPENTOK-AUTH"
+                                 , toStrict $ encodeCompact signedJWT
+                                 )
                                ]
             }
-      response <- httpLbs request manager
+      response <- httpLbs req manager
       let body = responseBody response
       case statusCode $ responseStatus response of
-        200 -> pure $ head <$> decodeBody body
-        -- 200 -> pure $ fmap (\r -> r ^? element 1) $ decodeBody body   ^^^ avoid using head
-        403 -> pure $ Left $ otError $ "An authentication error occurred: " <> errorMessage body
-        500 -> pure $ Left $ otError $ "A server error occurred: " <> errorMessage body
-        _ -> pure $ Left $ otError "An unrecognized error occurred."
+        200 -> pure $ Right body
+        403 -> pure $  Left $  "An authentication error occurred: " <> errorMessage body
+        500 -> pure $ Left $ "A server error occurred: " <> errorMessage body
+        _   -> pure $ Left "An unrecognized error occurred."
 
 
 
