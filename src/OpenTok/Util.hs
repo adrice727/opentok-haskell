@@ -1,4 +1,4 @@
-module Util where
+module OpenTok.Util where
 
 import           Control.Arrow
 import           Data.Time.Clock

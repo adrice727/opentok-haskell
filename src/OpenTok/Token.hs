@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Token where
+module OpenTok.Token where
 
 import           Prelude                        ( )
 import           Prelude.Compat
@@ -28,8 +28,8 @@ import           Data.UUID.V4                   ( nextRandom )
 import qualified Data.Text                     as T
 import           GHC.Generics
 import           Network.HTTP.Types             ( renderQuery )
-import           Util
-import           Types
+import           OpenTok.Util
+import           OpenTok.Types
 
 data Role = Subscriber | Publisher | Moderator
 instance Show Role where

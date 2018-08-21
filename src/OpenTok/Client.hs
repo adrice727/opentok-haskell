@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Client where
+module OpenTok.Client where
 
 import           Prelude                        ( )
 import           Prelude.Compat
@@ -28,11 +28,12 @@ import           Data.HashMap.Strict           as HM
 import           Data.Time.Clock
 import           GHC.Generics                   ( Generic )
 import           Network.HTTP.Client
-import           Network.HTTP.Client.TLS
-import           Network.HTTP.Types.Status      ( statusCode )
+-- import           Network.HTTP.Client.TLS
+-- import           Network.HTTP.Types.Status      ( statusCode )
+import           Network.HTTP.Simple            ( httpJSONEither )
 
-import           Types
-import           Util
+import           OpenTok.Types
+import           OpenTok.Util
 
 type Path = String
 
@@ -62,8 +63,7 @@ data Client = Client {
   _secret :: String
 }
 
-data RequestType = CreateSession | StartArchive | StopArchive
-
+-- | Create claims for a JWT
 mkClaims :: String -> IO ClaimsSet
 mkClaims projectKey = do
   now  <- currentTime
@@ -72,22 +72,18 @@ mkClaims projectKey = do
   let later = expireTime now
   pure
     $  emptyClaimsSet
-    &  claimIss
-    .~ preview stringOrUri (projectKey :: String)
-    &  claimIat
-    ?~ NumericDate now'
-    &  claimExp
-    ?~ NumericDate later
-    &  claimJti
-    ?~ toText uuid
-    &  unregisteredClaims
-    %~ HM.insert "ist" "project"
+    &  claimIss .~ preview stringOrUri (projectKey :: String)
+    &  claimIat ?~ NumericDate now'
+    &  claimExp ?~ NumericDate later
+    &  claimJti ?~ toText uuid
+    &  unregisteredClaims %~ HM.insert "ist" "project"
 
+-- | Sign JWT claims
 signJWT :: JWK -> ClaimsSet -> IO (Either JWTError SignedJWT)
 signJWT key claims =
   runExceptT $ signClaims key (newJWSHeader ((), HS256)) claims
 
-request :: (ToJSON a) => Client -> Path -> a -> IO (Either OTError ByteString)
+request :: (ToJSON a, FromJSON b) => Client -> Path -> a -> IO (Either OTError b)
 request client p opts = do
   claims <- mkClaims (_apiKey client)
   let key = fromOctets (pack $ _secret client)
@@ -96,23 +92,33 @@ request client p opts = do
     Left  _         -> pure $ Left "Failed to create JSON Web Token"
     Right signedJWT -> do
       initialRequest <- parseRequest $ "https://api.opentok.com" <> p
-      manager        <- newManager tlsManagerSettings
+      -- manager        <- newManager tlsManagerSettings
       let req = initialRequest
             { method         = "POST"
             , requestBody    = RequestBodyLBS $ encode opts
             , requestHeaders = [ ("Accept", "application/json")
-                               , ( "X-OPENTOK-AUTH"
-                                 , toStrict $ encodeCompact signedJWT
-                                 )
+                               , ("X-OPENTOK-AUTH" , toStrict $ encodeCompact signedJWT)
                                ]
             }
-      response <- httpLbs req manager
-      let body = responseBody response
-      case statusCode $ responseStatus response of
-        200 -> pure $ Right body
-        403 -> pure $  Left $  "An authentication error occurred: " <> errorMessage body
-        500 -> pure $ Left $ "A server error occurred: " <> errorMessage body
-        _   -> pure $ Left "An unrecognized error occurred."
+      response <- httpJSONEither req
+      case responseBody response of
+        Right b -> pure $ Right b
+        Left ex -> do
+          print $ show ex
+          pure $ Left $ "Some errorMessages"
+
+
+
+
+      -- let body = responseBody response
+      -- print body
+      -- case statusCode $ responseStatus response of
+      --   200 -> pure $ Right body
+      --   403 -> pure $  Left $ "An authentication error occurred: " <> errorMessage body
+      --   404 -> pure $  Left $ "Resource not found: " <> errorMessage body
+      --   490 -> pure $  Left $ "Resource conflict: " <> errorMessage body
+      --   500 -> pure $ Left $ "A server error occurred: " <> errorMessage body
+      --   _   -> pure $ Left "An unrecognized error occurred."
 
 
 
