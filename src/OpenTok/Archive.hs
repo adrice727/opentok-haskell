@@ -5,8 +5,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module OpenTok.Archive
-  ( Archive
-  , ArchiveOptions
+  ( ArchiveOptions
     ( _hasAudio
     , _hasAudio
     , _name
@@ -15,9 +14,8 @@ module OpenTok.Archive
     , _sessionId
     )
   , ArchiveResolution(SD, HD)
-  , ArchiveResponse
-    ( event
-    , id
+  , Archive
+    ( id
     , status
     , createdAt
     , size
@@ -32,7 +30,6 @@ module OpenTok.Archive
     , updatedAt
     , duration
     , sessionId
-    , sha256sum
     )
   , OutputMode(Composed, Individual)
   , archiveOpts
@@ -43,12 +40,10 @@ where
 import           Prelude                        ( )
 import           Prelude.Compat
 import           Data.Aeson
-import           Data.Aeson.Casing              ( snakeCase )
 import           Data.Aeson.Types
 import           Data.Aeson.TH
 import           Data.Data
 import           Data.Semigroup                 ( (<>) )
-import           Data.Time.Clock
 import           Data.Strings                   ( strToLower )
 import           GHC.Generics
 
@@ -130,29 +125,11 @@ archiveOpts = ArchiveOptions
 
 -- | Status of an OpenTok `Archive`
 data ArchiveStatus = Available | Expired | Failed | Paused | Started | Stopped | Uploaded deriving (Data, Generic, Typeable)
-
 deriveJSON defaultOptions { constructorTagModifier = strToLower } ''ArchiveStatus
+
 
 -- | Represents an OpenTok Archive
 data Archive = Archive {
-  _createdAt :: UTCTime,
-  _duration :: Float,
-  _hasAudio :: Bool,
-  _hasVideo :: Bool,
-  _id :: String,
-  _name :: String,
-  _outputMode :: OutputMode,
-  _projectId :: APIKey,
-  _reason :: String,
-  _resolution :: ArchiveResolution,
-  _sessionId :: SessionId,
-  _size :: Integer,
-  _status :: String,
-  _url :: Maybe String
-} deriving (Show, Generic)
-
-data ArchiveResponse = ArchiveResponse {
-  event :: String,
   id :: String,
   status :: String,
   createdAt :: Integer,
@@ -167,22 +144,18 @@ data ArchiveResponse = ArchiveResponse {
   name :: String,
   updatedAt :: Integer,
   duration :: Float,
-  sessionId :: String,
-  sha256sum :: String
+  sessionId :: String
 } deriving (Show, Generic)
 
-instance FromJSON ArchiveResponse where
+instance FromJSON Archive where
   parseJSON = genericParseJSON defaultOptions
 
 -- [("event",String "archive"),("status",String "started"),("createdAt",Number 1.534898598419e12),("size",Number 0.0),("partnerId",Number 4.5759482e7),("url",Null),("resolution",String "640x480"),("outputMode",String "composed"),("hasAudio",Bool True),("reason",String ""),("name",Null),("password",String ""),("id",String "e4efbf78-244f-47e7-ae89-640988cac725"),("updatedAt",Number 1.53489859849e12),("sha256sum",String ""),("projectId",Number 4.5759482e7),("sessionId",String "2_MX40NTc1OTQ4Mn5-MTUzNDg5NzQ0MDgwMX44QjZFVFQ4VkhWL05YYUpvRUtlNGFUQkh-fg"),("hasVideo",Bool True),("duration",Number 0.0)]
 
-instance FromJSON Archive where
-  parseJSON = genericParseJSON $ defaultOptions { fieldLabelModifier = snakeCase . drop 1 }
-
-start :: Client -> ArchiveOptions -> IO (Either OTError ArchiveResponse)
+start :: Client -> ArchiveOptions -> IO (Either OTError Archive)
 start c opts = do
   let path = "/v2/project/" <> _apiKey c <> "/archive"
-  response <- request c path opts :: IO (Either ClientError ArchiveResponse)
+  response <- request c path opts :: IO (Either ClientError Archive)
   case response of
     Right archive -> pure $ Right archive
     Left  e       -> pure $ Left $ "Failed to start archive: " <> message e
