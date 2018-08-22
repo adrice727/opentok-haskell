@@ -17,10 +17,9 @@ import           Prelude.Compat
 import           Data.Aeson
 import           Data.Aeson.Casing              ( snakeCase )
 import           Data.Aeson.Types
-import Data.Aeson.TH
-import Data.Data
-import           Data.Semigroup                 ( (<>) )
-import Data.Strings  ( strToLower )
+import           Data.Aeson.TH
+import           Data.Data
+import           Data.Strings                   ( strToLower )
 import           GHC.Generics
 
 import           OpenTok.Client
@@ -107,9 +106,9 @@ fromProps opts props = Session
 -- | Create a new OpenTok Session
 create :: Client -> SessionOptions -> IO (Either OTError Session)
 create client opts = do
-  response <- request client "/session/create/" opts :: IO (Either OTError [SessionProperties])
+  response <-
+    request client "/session/create/" opts :: IO
+      (Either ClientError [SessionProperties])
   case response of
     Right propsArray -> pure $ Right $ (fromProps opts . head) propsArray
-    Left  e  -> pure $ Left $ "Failed to decode create session response: " <> e
-
-
+    Left  e          -> pure $ Left $ message e

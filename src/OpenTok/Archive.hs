@@ -14,12 +14,10 @@ module OpenTok.Archive
     , _resolution
     , _sessionId
     )
-  , ArchiveResolution
-    ( SD
-    , HD
-    )
+  , ArchiveResolution(SD, HD)
   , ArchiveResponse
     ( event
+    , id
     , status
     , createdAt
     , size
@@ -155,6 +153,7 @@ data Archive = Archive {
 
 data ArchiveResponse = ArchiveResponse {
   event :: String,
+  id :: String,
   status :: String,
   createdAt :: Integer,
   size :: Float,
@@ -183,10 +182,10 @@ instance FromJSON Archive where
 start :: Client -> ArchiveOptions -> IO (Either OTError ArchiveResponse)
 start c opts = do
   let path = "/v2/project/" <> _apiKey c <> "/archive"
-  response <- request c path opts :: IO (Either OTError ArchiveResponse)
+  response <- request c path opts :: IO (Either ClientError ArchiveResponse)
   case response of
     Right archive -> pure $ Right archive
-    Left  e       -> pure $ Left $ "Failed to start archive: " <> e
+    Left  e       -> pure $ Left $ "Failed to start archive: " <> message e
 
 
 
