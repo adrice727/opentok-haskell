@@ -1,12 +1,41 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module OpenTok.Archive
   ( Archive
-  , ArchiveOptions(hasAudio, hasAudio, name, outputMode, resolution, sessionId)
-  , ArchiveResolution(SD, HD)
-  , ArchiveStatus(Avilable, Expired, Failed, Paused, Started, Stopped, Uploaded)
+  , ArchiveOptions
+    ( _hasAudio
+    , _hasAudio
+    , _name
+    , _outputMode
+    , _resolution
+    , _sessionId
+    )
+  , ArchiveResolution
+    ( SD
+    , HD
+    )
+  , ArchiveResponse
+    ( event
+    , status
+    , createdAt
+    , size
+    , partnerId
+    , url
+    , resolution
+    , outputMode
+    , hasAudio
+    , hasVideo
+    , reason
+    , name
+    , updatedAt
+    , duration
+    , sessionId
+    , sha256sum
+    )
   , OutputMode(Composed, Individual)
   , archiveOpts
   , start
@@ -16,17 +45,13 @@ where
 import           Prelude                        ( )
 import           Prelude.Compat
 import           Data.Aeson
-import           Data.Aeson.Casing              ( aesonPrefix
-                                                , camelCase
-                                                , snakeCase
-                                                , pascalCase
-                                                )
+import           Data.Aeson.Casing              ( snakeCase )
 import           Data.Aeson.Types
+import           Data.Aeson.TH
+import           Data.Data
 import           Data.Semigroup                 ( (<>) )
-import           Data.Text                      ( unpack
-                                                , Text
-                                                )
 import           Data.Time.Clock
+import           Data.Strings                   ( strToLower )
 import           GHC.Generics
 
 import           OpenTok.Client
@@ -38,15 +63,12 @@ import           OpenTok.Types
 --
 -- Individual means that an individual file will be created for each stream
 --
-data OutputMode = Composed | Individual deriving (Generic, Show)
+data OutputMode = Composed | Individual deriving (Data, Generic, Typeable)
 
-instance ToJSON OutputMode where
-  toJSON Composed = String "composed"
-  toJSON Individual = String "individual"
+instance Show OutputMode where
+  show = strToLower . showConstr . toConstr
 
-instance FromJSON OutputMode where
-  parseJSON = genericParseJSON $ aesonPrefix pascalCase
-
+deriveJSON defaultOptions { constructorTagModifier = strToLower } ''OutputMode
 
 -- | SD (Standard Definition 640 x 480)
 --
@@ -55,20 +77,19 @@ instance FromJSON OutputMode where
 data ArchiveResolution = SD | HD
 
 instance Show ArchiveResolution where
-  show SD = "640 x 480 (SD)"
-  show HD = "1280 x 720 (HD)"
+  show SD = "640x480 (SD)"
+  show HD = "1280x720 (HD)"
 
 instance ToJSON ArchiveResolution where
   toJSON SD = String "640x480"
   toJSON HD = String "1280x720"
 
 instance FromJSON ArchiveResolution where
-  parseJSON = withObject "ArchiveResolution" $ \o -> do
-      res <- o .: "value"
-      case res :: Text of
-          "640x480" -> pure SD
-          "1280x720" -> pure HD
-          _ -> fail $ "Expected one of 640x480 or 1280x720 for ArchiveResolution, got: " <> unpack res
+  parseJSON (String s) = case s of
+    "640x480" -> pure SD
+    "1280x720" -> pure HD
+    _ -> typeMismatch "Could not parse ArchiveResolution" (String s)
+  parseJSON x = typeMismatch "Expected String" x
 
 -- | Defines options for an Archive
 --
@@ -87,40 +108,37 @@ instance FromJSON ArchiveResolution where
 -- or 'HD' (1280 x 720)
 --
 data ArchiveOptions =  ArchiveOptions {
-  hasAudio :: Bool,
-  hasVideo :: Bool,
-  name :: Maybe String,
-  outputMode :: OutputMode,
-  resolution :: ArchiveResolution,
-  sessionId :: SessionId
+  _hasAudio :: Bool,
+  _hasVideo :: Bool,
+  _name :: Maybe String,
+  _outputMode :: OutputMode,
+  _resolution :: ArchiveResolution,
+  _sessionId :: SessionId
 } deriving (Generic, Show)
 
-instance ToJSON ArchiveOptions
+instance ToJSON ArchiveOptions where
+  toJSON = genericToJSON defaultOptions { omitNothingFields = True, fieldLabelModifier = drop 1 }
 
 -- | Default Archive options
 archiveOpts :: ArchiveOptions
 archiveOpts = ArchiveOptions
-  { hasAudio   = True
-  , hasVideo   = True
-  , name       = Nothing
-  , outputMode = Composed
-  , resolution = SD
-  , sessionId  = ""
+  { _hasAudio   = True
+  , _hasVideo   = True
+  , _name       = Nothing
+  , _outputMode = Composed
+  , _resolution = SD
+  , _sessionId  = ""
   }
 
 -- | Status of an OpenTok `Archive`
-data ArchiveStatus = Avilable | Expired | Failed | Paused | Started | Stopped | Uploaded deriving (Generic, Show)
+data ArchiveStatus = Available | Expired | Failed | Paused | Started | Stopped | Uploaded deriving (Data, Generic, Typeable)
 
-instance ToJSON ArchiveStatus where
-  toJSON = genericToJSON $ aesonPrefix camelCase
-
-instance FromJSON ArchiveStatus where
-  parseJSON = genericParseJSON $ aesonPrefix pascalCase
+deriveJSON defaultOptions { constructorTagModifier = strToLower } ''ArchiveStatus
 
 -- | Represents an OpenTok Archive
 data Archive = Archive {
   _createdAt :: UTCTime,
-  _duration :: Int,
+  _duration :: Float,
   _hasAudio :: Bool,
   _hasVideo :: Bool,
   _id :: String,
@@ -130,21 +148,45 @@ data Archive = Archive {
   _reason :: String,
   _resolution :: ArchiveResolution,
   _sessionId :: SessionId,
-  _size :: Int,
-  _status :: ArchiveStatus,
-  _url :: String
+  _size :: Integer,
+  _status :: String,
+  _url :: Maybe String
 } deriving (Show, Generic)
+
+data ArchiveResponse = ArchiveResponse {
+  event :: String,
+  status :: String,
+  createdAt :: Integer,
+  size :: Float,
+  partnerId :: Int,
+  url :: Maybe String,
+  resolution :: ArchiveResolution,
+  outputMode :: OutputMode,
+  hasAudio :: Bool,
+  hasVideo :: Bool,
+  reason :: String,
+  name :: String,
+  updatedAt :: Integer,
+  duration :: Float,
+  sessionId :: String,
+  sha256sum :: String
+} deriving (Show, Generic)
+
+instance FromJSON ArchiveResponse where
+  parseJSON = genericParseJSON defaultOptions
+
+-- [("event",String "archive"),("status",String "started"),("createdAt",Number 1.534898598419e12),("size",Number 0.0),("partnerId",Number 4.5759482e7),("url",Null),("resolution",String "640x480"),("outputMode",String "composed"),("hasAudio",Bool True),("reason",String ""),("name",Null),("password",String ""),("id",String "e4efbf78-244f-47e7-ae89-640988cac725"),("updatedAt",Number 1.53489859849e12),("sha256sum",String ""),("projectId",Number 4.5759482e7),("sessionId",String "2_MX40NTc1OTQ4Mn5-MTUzNDg5NzQ0MDgwMX44QjZFVFQ4VkhWL05YYUpvRUtlNGFUQkh-fg"),("hasVideo",Bool True),("duration",Number 0.0)]
 
 instance FromJSON Archive where
   parseJSON = genericParseJSON $ defaultOptions { fieldLabelModifier = snakeCase . drop 1 }
 
-start :: Client -> ArchiveOptions -> IO (Either OTError Archive)
+start :: Client -> ArchiveOptions -> IO (Either OTError ArchiveResponse)
 start c opts = do
   let path = "/v2/project/" <> _apiKey c <> "/archive"
-  response <- request c path opts :: Either OTError Archive
+  response <- request c path opts :: IO (Either OTError ArchiveResponse)
   case response of
-    Right bs -> pure $ eitherDecode bs
-    Left  e  -> pure $ Left $ "Failed to start archive: " <> e
+    Right archive -> pure $ Right archive
+    Left  e       -> pure $ Left $ "Failed to start archive: " <> e
 
 
 

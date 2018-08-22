@@ -1,5 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module OpenTok.Session
   ( Session
@@ -12,15 +14,13 @@ where
 
 import           Prelude                        ( )
 import           Prelude.Compat
-import           Control.Arrow                  ( right )
 import           Data.Aeson
-import           Data.Aeson.Casing              ( aesonPrefix
-                                                , camelCase
-                                                , pascalCase
-                                                , snakeCase
-                                                )
+import           Data.Aeson.Casing              ( snakeCase )
 import           Data.Aeson.Types
+import Data.Aeson.TH
+import Data.Data
 import           Data.Semigroup                 ( (<>) )
+import Data.Strings  ( strToLower )
 import           GHC.Generics
 
 import           OpenTok.Client
@@ -29,24 +29,21 @@ import           OpenTok.Types
 -- | Relayed sessions will attempt to use peer-to-peer (p2p) connections.
 --
 -- Routed sessions will use the <https://tokbox.com/platform/multi-party OpenTok Media Router>
-data MediaMode = Relayed | Routed deriving (Generic, Show)
--- instance Show MediaMode where
---   show Relayed = "relayed"
---   show Routed = "routed"
+data MediaMode = Relayed | Routed deriving (Data, Generic, Typeable)
 
-instance ToJSON MediaMode where
-  toJSON = genericToJSON $ aesonPrefix camelCase
+instance Show MediaMode where
+  show = strToLower . showConstr . toConstr
+
+deriveJSON defaultOptions { constructorTagModifier = strToLower } ''MediaMode
 
 -- | Manual, as it implies, requires archives to be manually started and stopped.
 -- Always means that archives will automatically be created.
-data ArchiveMode = Manual | Always deriving (Generic, Show)
+data ArchiveMode = Manual | Always deriving (Data, Generic, Typeable)
 
-instance ToJSON ArchiveMode where
-  toJSON = genericToJSON $ aesonPrefix camelCase
+instance Show ArchiveMode where
+  show = strToLower . showConstr . toConstr
 
-instance FromJSON ArchiveMode where
-  parseJSON = genericParseJSON $ aesonPrefix pascalCase
-
+deriveJSON defaultOptions { constructorTagModifier = strToLower } ''ArchiveMode
 
 -- | Defines options for an OpenTok Session
 --
@@ -110,9 +107,9 @@ fromProps opts props = Session
 -- | Create a new OpenTok Session
 create :: Client -> SessionOptions -> IO (Either OTError Session)
 create client opts = do
-  response <- request client "/session/create/" opts :: Either OTError [SessionProperties]
+  response <- request client "/session/create/" opts :: IO (Either OTError [SessionProperties])
   case response of
-    Right bs -> pure $ right (fromProps opts . head) (eitherDecode bs)
+    Right propsArray -> pure $ Right $ (fromProps opts . head) propsArray
     Left  e  -> pure $ Left $ "Failed to decode create session response: " <> e
 
 

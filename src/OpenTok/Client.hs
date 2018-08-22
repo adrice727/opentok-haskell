@@ -6,7 +6,6 @@ module OpenTok.Client where
 
 import           Prelude                        ( )
 import           Prelude.Compat
--- import           Control.Arrow                  ( left )
 import           Control.Lens.Combinators
 import           Control.Lens.Operators
 import           Control.Monad.Time
@@ -20,7 +19,7 @@ import           Data.Aeson                     ( encode
                                                 , FromJSON
                                                 , ToJSON
                                                 )
-import           Data.ByteString.Char8          ( pack )
+import    qualified       Data.ByteString.Char8  as C8        ( pack )
 import           Data.ByteString.Lazy           ( toStrict
                                                 , ByteString
                                                 )
@@ -28,8 +27,6 @@ import           Data.HashMap.Strict           as HM
 import           Data.Time.Clock
 import           GHC.Generics                   ( Generic )
 import           Network.HTTP.Client
--- import           Network.HTTP.Client.TLS
--- import           Network.HTTP.Types.Status      ( statusCode )
 import           Network.HTTP.Simple            ( httpJSONEither )
 
 import           OpenTok.Types
@@ -86,7 +83,7 @@ signJWT key claims =
 request :: (ToJSON a, FromJSON b) => Client -> Path -> a -> IO (Either OTError b)
 request client p opts = do
   claims <- mkClaims (_apiKey client)
-  let key = fromOctets (pack $ _secret client)
+  let key = fromOctets (C8.pack $ _secret client)
   eitherJWT <- signJWT key claims
   case eitherJWT of
     Left  _         -> pure $ Left "Failed to create JSON Web Token"
@@ -96,16 +93,35 @@ request client p opts = do
       let req = initialRequest
             { method         = "POST"
             , requestBody    = RequestBodyLBS $ encode opts
-            , requestHeaders = [ ("Accept", "application/json")
+            , requestHeaders = [
+                                 ("Content-Type", "application/json")
+                               , ("Accept", "application/json")
                                , ("X-OPENTOK-AUTH" , toStrict $ encodeCompact signedJWT)
                                ]
             }
       response <- httpJSONEither req
       case responseBody response of
-        Right b -> pure $ Right b
         Left ex -> do
-          print $ show ex
+          print ex
+          -- decode response body as APIError ?
           pure $ Left $ "Some errorMessages"
+        Right b -> pure $ Right b
+
+
+
+      -- case statusCode (responseStatus response) of
+      --   200 -> pure $ responseBody body
+      --   _ -> pure $ left show (responseBody response)
+
+
+
+
+
+        -- case responseBody response of
+      --   Right b -> pure $ Right b
+      --   Left ex -> do
+      --     print $ responseBody ex
+      --     pure $ Left $ "Some errorMessages"
 
 
 
