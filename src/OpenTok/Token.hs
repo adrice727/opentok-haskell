@@ -45,7 +45,19 @@ data TokenOptions = TokenOptions {
   _initialLayoutClassList :: Maybe [String]
 } deriving (Show, Generic)
 
--- | Default token options
+{-|
+Default Token options
+
+@
+TokenOptions
+  { _role                       = Publisher
+  , _expireTime                 = Nothing
+  , _connectionData             = Nothing
+  , _initialLayoutClassList     = Nothing
+}
+@
+
+-}
 tokenOpts :: TokenOptions
 tokenOpts = TokenOptions
   { _role                   = Publisher
