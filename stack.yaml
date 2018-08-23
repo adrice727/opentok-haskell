@@ -50,6 +50,7 @@ extra-deps:
   - hlint-2.0.11
   - monad-time-0.3.1.0
   - strings-1.1
+  - hscolour-1.20.3
 # Override default flag values for local packages and extra-deps
 # flags: {}
 

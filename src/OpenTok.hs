@@ -42,10 +42,8 @@ opentok k s = OpenTok k s (OpenTok.Client.Client k s)
 -- | Generate a new OpenTok Session
 --
 -- @
---
 -- options = sessionOpts { mediaMode = Routed }
 -- session <- createSession ot sessionOpts
---
 -- @
 --
 createSession :: OpenTok -> SessionOptions -> IO (Either OTError Session)
@@ -54,38 +52,24 @@ createSession ot = OpenTok.Session.create (client ot)
 -- | Generate a token.
 --
 -- @
---
 -- let options = tokenOpts { connectionData = "name:tim" }
 -- token <- generateToken ot options
---
 -- @
 --
 generateToken :: OpenTok -> SessionId -> TokenOptions -> IO (Either OTError Token)
 generateToken ot = OpenTok.Token.generate (apiKey ot) (secret ot)
 
 -- | Start recording an archive of an OpenTok session
--- @
 --
--- startArchive ot archiveOpts { sessionId = "your_session_id" }
---
--- @
+-- > startArchive ot archiveOpts { sessionId = "your_session_id" }
 --
 startArchive :: OpenTok -> ArchiveOptions -> IO (Either OTError Archive)
 startArchive ot = OpenTok.Archive.start (client ot)
 
 
 -- | Stop recording an archive of an OpenTok session
--- @
 --
--- stopArchive ot "your_archive_id"
--- @
+-- > stopArchive ot archiveOpts { sessionId = "your_session_id" }
 --
 stopArchive :: OpenTok -> ArchiveId -> IO (Either OTError Archive)
 stopArchive ot = OpenTok.Archive.stop (client ot)
-
-
-  -- stopArchive :: (OpenTok ot) => Maybe SessionOptions -> Session
-  -- deleteArchive :: (OpenTok ot) => Maybe SessionOptions -> Session
-  -- listArchives :: (OpenTok ot) => Maybe SessionOptions -> Session
-  -- forceDisconnect :: (OpenTok ot) => Maybe SessionOptions -> Session
-  -- dial :: (OpenTok ot) => Maybe SessionOptions -> Session
