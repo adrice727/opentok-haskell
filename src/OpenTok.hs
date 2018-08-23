@@ -4,6 +4,9 @@ module OpenTok
   ( OpenTok(apiKey, secret)
   , opentok
   , createSession
+  , Token
+  , TokenOptions
+  , tokenOpts
   , generateToken
   , startArchive
   , stopArchive
