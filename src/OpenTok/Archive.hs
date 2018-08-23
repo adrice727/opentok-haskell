@@ -47,6 +47,7 @@ module OpenTok.Archive
   , start
   , stop
   , list
+  , delete
   )
 where
 
@@ -287,3 +288,13 @@ list c opts = do
   case response of
     Right archive -> pure $ Right archive
     Left  e       -> pure $ Left $ "An error occurred in retrieving an archive list: " <> message e
+
+delete :: Client -> ArchiveId -> IO (Either OTError ArchiveId)
+delete c aid = do
+  let path = "/v2/project/" <> _apiKey c <> "/archive/" <> aid
+  response <- del c path :: IO (Either ClientError String)
+  case response of
+    Right _ -> pure $ Right $ "Successfully deleted archive " <> aid
+    Left  e -> case statusCode e of
+      409 -> pure $ Left "Archive has status other than uploaded, available or deleted."
+      _   -> pure $ Left $ message e

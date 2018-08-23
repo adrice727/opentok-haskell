@@ -7,10 +7,10 @@ module OpenTok.Client
   ( Client(Client, _apiKey, _secret)
   , ClientError(statusCode, message)
   , Path
-  , emptyOptions
   , post
   , postWithBody
   , get
+  , del
   )
 where
 
@@ -19,7 +19,6 @@ import           Prelude.Compat
 import           Control.Arrow                  ( left )
 import           Control.Lens.Combinators
 import           Control.Lens.Operators
--- import           Control.Monad.Trans.Either     ( eitherT )
 import           Control.Monad.Time
 import           Control.Monad.Trans.Except
 import           Crypto.JWT
@@ -98,13 +97,6 @@ signJWT :: JWK -> ClaimsSet -> IO (Either JWTError SignedJWT)
 signJWT key claims =
   runExceptT $ signClaims key (newJWSHeader ((), HS256)) claims
 
-data EmptyOptions = EmptyOptions deriving (Generic)
-instance ToJSON EmptyOptions
-
--- | A dummy type used when not passing any options to request
-emptyOptions :: Maybe EmptyOptions
-emptyOptions = Nothing
-
 createJWT :: Client -> IO (Either ClientError SignedJWT)
 createJWT client = do
   claims <- mkClaims (_apiKey client)
@@ -125,7 +117,6 @@ buildHeaders jwt =
 buildV1Headers :: SignedJWT -> RequestHeaders
 buildV1Headers jwt = drop 1 $ buildHeaders jwt
 
-
 -- | Execute an API request
 execute :: (FromJSON a) => Request -> IO (Either ClientError a)
 execute req = do
@@ -138,6 +129,16 @@ execute req = do
     _   -> pure $ Left $ maybe (decodeError sc)
                                (ClientError sc . _message)
                                (decode body :: Maybe APIError)
+
+-- | Execute an API request to delete a resource
+deleteResource :: Request -> IO (Either ClientError String)
+deleteResource req = do
+  manager  <- newManager tlsManagerSettings
+  response <- httpLbs req manager
+  let sc   = getResponseStatusCode response
+  case sc of
+    204 -> pure $ Right "Ok"
+    _   -> pure $ Left $ ClientError sc "Failed to delete resource"
 
 buildRequest :: Path -> SignedJWT -> IO Request
 buildRequest p jwt = do
@@ -174,3 +175,13 @@ get client p = do
     Right jwt -> do
       request <- buildRequest p jwt
       execute $ request { method = "GET" }
+
+-- | Make a GET request with a body
+del :: Client -> Path -> IO (Either ClientError String)
+del client p = do
+  eitherJWT <- createJWT client
+  case eitherJWT of
+    Left e -> pure $ Left $ e
+    Right jwt -> do
+      request <- buildRequest p jwt
+      deleteResource $ request { method = "DELETE" }

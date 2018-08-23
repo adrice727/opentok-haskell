@@ -11,6 +11,7 @@ module OpenTok
   , startArchive
   , stopArchive
   , listArchives
+  , deleteArchive
   )
 where
 
@@ -84,3 +85,10 @@ stopArchive ot = OpenTok.Archive.stop (client ot)
 --
 listArchives :: OpenTok -> ListArchiveOptions -> IO (Either OTError ArchiveCollection)
 listArchives ot = OpenTok.Archive.list (client ot)
+
+-- | Delete an Archive
+--
+-- > deleteArchive ot "some_archive_id"
+--
+deleteArchive :: OpenTok -> ArchiveId -> IO (Either OTError ArchiveId)
+deleteArchive ot = OpenTok.Archive.delete (client ot)
