@@ -4,10 +4,10 @@ module OpenTok
   ( OpenTok(apiKey, secret)
   , opentok
   , createSession
+  , generateToken
   , Token
   , TokenOptions
   , tokenOpts
-  , generateToken
   , startArchive
   , stopArchive
   )
@@ -42,7 +42,7 @@ instance Show OpenTok where
 opentok :: APIKey -> APISecret -> OpenTok
 opentok k s = OpenTok k s (OpenTok.Client.Client k s)
 
--- | Generate a new OpenTok Session
+-- | Create a new OpenTok Session
 --
 -- @
 -- options = sessionOpts { mediaMode = Routed }
@@ -72,7 +72,7 @@ startArchive ot = OpenTok.Archive.start (client ot)
 
 -- | Stop recording an archive of an OpenTok session
 --
--- > stopArchive ot archiveOpts { sessionId = "your_session_id" }
+-- > stopArchive ot "your_session_id"
 --
 stopArchive :: OpenTok -> ArchiveId -> IO (Either OTError Archive)
 stopArchive ot = OpenTok.Archive.stop (client ot)
