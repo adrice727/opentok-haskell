@@ -4,7 +4,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module OpenTok.Session
-  ( Session
+  ( Session(apiKey, sessionId, mediaMode, archiveMode)
   , SessionOptions(_mediaMode, _archiveMode, _location)
   , MediaMode(Relayed, Routed)
   , create

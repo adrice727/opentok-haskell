@@ -1,5 +1,5 @@
 name: opentok
-version: 0.0.1
+version: 0.0.3
 synopsis: An OpenTok SDK for Haskell
 description:
   .

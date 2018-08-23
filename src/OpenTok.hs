@@ -30,7 +30,7 @@ data OpenTok = OpenTok {
 }
 
 instance Show OpenTok where
-  show ot = "OpenTok { APIKey: " <> apiKey ot <> ", Secret: *_*_*_*_*_*  }"
+  show ot = "OpenTok { APIKey: " <> OpenTok.apiKey ot <> ", Secret: *_*_*_*_*_*  }"
 
 -- | Get an OpenTok project
 --
@@ -57,7 +57,7 @@ createSession ot = OpenTok.Session.create (client ot)
 -- @
 --
 generateToken :: OpenTok -> SessionId -> TokenOptions -> IO (Either OTError Token)
-generateToken ot = OpenTok.Token.generate (apiKey ot) (secret ot)
+generateToken ot = OpenTok.Token.generate (OpenTok.apiKey ot) (OpenTok.secret ot)
 
 -- | Start recording an archive of an OpenTok session
 --
