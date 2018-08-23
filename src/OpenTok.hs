@@ -10,6 +10,7 @@ module OpenTok
   , tokenOpts
   , startArchive
   , stopArchive
+  , listArchives
   )
 where
 
@@ -76,3 +77,10 @@ startArchive ot = OpenTok.Archive.start (client ot)
 --
 stopArchive :: OpenTok -> ArchiveId -> IO (Either OTError Archive)
 stopArchive ot = OpenTok.Archive.stop (client ot)
+
+-- | Get a list of all archives for a project or a single session
+--
+-- > listArchives ot listArchiveOpts { _forSessionId = "some_session_id" }
+--
+listArchives :: OpenTok -> ListArchiveOptions -> IO (Either OTError ArchiveCollection)
+listArchives ot = OpenTok.Archive.list (client ot)

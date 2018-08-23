@@ -10,6 +10,7 @@ module OpenTok.Client
   , emptyOptions
   , post
   , postWithBody
+  , get
   )
 where
 
@@ -133,7 +134,7 @@ execute req = do
   let body = responseBody response
   let sc   = getResponseStatusCode response
   case sc of
-    200 -> pure $ left (\_ -> decodeError sc) (eitherDecode body)
+    200 -> pure $ left (\m -> (decodeError sc) { message = m }) (eitherDecode body)
     _   -> pure $ Left $ maybe (decodeError sc)
                                (ClientError sc . _message)
                                (decode body :: Maybe APIError)
@@ -164,3 +165,12 @@ postWithBody client p b = do
       request <- buildRequest p jwt
       execute $ request { requestBody = RequestBodyLBS $ encode b }
 
+-- | Make a GET request with a body
+get :: (FromJSON a) => Client -> Path -> IO (Either ClientError a)
+get client p = do
+  eitherJWT <- createJWT client
+  case eitherJWT of
+    Left e -> pure $ Left $ e
+    Right jwt -> do
+      request <- buildRequest p jwt
+      execute $ request { method = "GET" }

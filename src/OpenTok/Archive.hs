@@ -34,8 +34,19 @@ module OpenTok.Archive
     , duration
     , sessionId
     )
+  , ListArchiveOptions
+   ( _forSessionId
+   , _count
+   , _offset
+   )
+  , listArchiveOpts
+  , ArchiveCollection
+  ( count
+  , items
+  )
   , start
   , stop
+  , list
   )
 where
 
@@ -150,9 +161,9 @@ An OpenTok Archive
 @
 Archive {
   id :: 'String',
-  status :: 'String',
+  status :: 'ArchiveStatus',
   createdAt :: 'Integer',
-  size :: 'Float',
+  size :: 'Int',
   partnerId :: 'Int',
   url :: Maybe 'String',
   resolution :: 'ArchiveResolution',
@@ -162,7 +173,7 @@ Archive {
   reason :: 'String',
   name :: 'String',
   updatedAt :: 'Integer',
-  duration :: 'Float',
+  duration :: 'Int',
   sessionId :: 'String'
 }
 @
@@ -170,9 +181,9 @@ Archive {
 -}
 data Archive = Archive {
   id :: String,
-  status :: String,
+  status :: ArchiveStatus,
   createdAt :: Integer,
-  size :: Float,
+  size :: Int,
   partnerId :: Int,
   url :: Maybe String,
   resolution :: ArchiveResolution,
@@ -180,9 +191,9 @@ data Archive = Archive {
   hasAudio :: Bool,
   hasVideo :: Bool,
   reason :: String,
-  name :: String,
+  name :: Maybe String,
   updatedAt :: Integer,
-  duration :: Float,
+  duration :: Int,
   sessionId :: String
 } deriving (Show, Generic)
 
@@ -206,3 +217,73 @@ stop c aId = do
   case response of
     Right archive -> pure $ Right archive
     Left  e       -> pure $ Left $ "An error occurred in attempting to stop an archive: " <> message e
+
+
+{-|
+
+Options for listing archives
+
+@
+ListArchiveOptions {
+  _forSessionId :: `Maybe` `SessionId`,
+  _count :: `Int`,
+  _offset :: `Int`
+}
+@
+
+-}
+data ListArchiveOptions = ListArchiveOptions {
+  _forSessionId :: Maybe SessionId,
+  _offset :: Int,
+  _count :: Int
+}
+
+{-|
+Default List Archive options
+
+@
+ListArchiveOptions
+  { _forSessionId = `Nothing`
+  , _offset     = 0
+  , _count      = 50
+}
+@
+
+-}
+listArchiveOpts :: ListArchiveOptions
+listArchiveOpts = ListArchiveOptions {
+  _forSessionId = Nothing,
+  _offset = 0,
+  _count = 50
+}
+
+{-|
+
+An OpenTok Archive Collection
+
+@
+ArchiveCollection {
+  count :: 'Int'
+  items :: ['Archive']
+  id :: 'String'
+}
+@
+
+-}
+data ArchiveCollection = ArchiveCollection {
+  count :: Int,
+  items :: [Archive]
+} deriving (Generic, Show)
+
+instance FromJSON ArchiveCollection
+
+list :: Client -> ListArchiveOptions -> IO (Either OTError ArchiveCollection)
+list c opts = do
+  let sessionQuery = maybe "" (\sid -> "sessionId=" <> sid <> "&") (_forSessionId opts)
+  let pagingQuery = "offset=" <> (show $ _offset opts) <> "&count=" <>( show $ _count opts)
+  let query = "?" <> sessionQuery <> pagingQuery
+  let path = "/v2/project/" <> _apiKey c <> "/archive" <> query
+  response <- get c path :: IO (Either ClientError ArchiveCollection)
+  case response of
+    Right archive -> pure $ Right archive
+    Left  e       -> pure $ Left $ "An error occurred in retrieving an archive list: " <> message e
