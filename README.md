@@ -1,5 +1,4 @@
 ## OpenTok Haskell SDK
-----------
 
 
 An SDK for the [OpenTok](https://tokbox.com/platform) platform which lets you:
