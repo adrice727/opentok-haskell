@@ -159,7 +159,7 @@ postWithBody :: (ToJSON a, FromJSON b) => Client -> Path -> a -> IO (Either Clie
 postWithBody client p b = do
   eitherJWT <- createJWT client
   case eitherJWT of
-    Left  e         -> pure $ Left $ e
+    Left e -> pure $ Left $ e
     Right jwt -> do
       request <- buildRequest p jwt
       execute $ request { requestBody = RequestBodyLBS $ encode b }

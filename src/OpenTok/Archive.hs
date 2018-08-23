@@ -51,8 +51,6 @@ import           GHC.Generics
 import           OpenTok.Client
 import           OpenTok.Types
 
-
-
 -- | Composed means that streams will be composed into a single file
 --
 -- Individual means that an individual file will be created for each stream
@@ -66,7 +64,7 @@ deriveJSON defaultOptions { constructorTagModifier = strToLower } ''OutputMode
 
 -- | SD (Standard Definition 640 x 480)
 --
--- | HD (High Definition 1280 x 720)
+-- HD (High Definition 1280 x 720)
 --
 data ArchiveResolution = SD | HD
 
@@ -113,7 +111,20 @@ data ArchiveOptions =  ArchiveOptions {
 instance ToJSON ArchiveOptions where
   toJSON = genericToJSON defaultOptions { omitNothingFields = True, fieldLabelModifier = drop 1 }
 
--- | Default Archive options
+{-|
+Default Archive options
+
+@
+ArchiveOptions
+  { _hasVideo   = 'True'
+  , _name       = 'Nothing'
+  , _outputMode = 'Composed'
+  , _resolution = 'SD'
+  , _sessionId  = ""
+}
+@
+
+-}
 archiveOpts :: ArchiveOptions
 archiveOpts = ArchiveOptions
   { _hasAudio   = True
@@ -129,7 +140,31 @@ data ArchiveStatus = Available | Expired | Failed | Paused | Started | Stopped |
 deriveJSON defaultOptions { constructorTagModifier = strToLower } ''ArchiveStatus
 
 
--- | Represents an OpenTok Archive
+{-|
+
+An OpenTok Archive
+
+@
+Archive {
+  id :: 'String',
+  status :: 'String',
+  createdAt :: 'Integer',
+  size :: 'Float',
+  partnerId :: 'Int',
+  url :: Maybe 'String',
+  resolution :: 'ArchiveResolution',
+  outputMode :: 'OutputMode',
+  hasAudio :: 'Bool',
+  hasVideo :: 'Bool',
+  reason :: 'String',
+  name :: 'String',
+  updatedAt :: 'Integer',
+  duration :: 'Float',
+  sessionId :: 'String'
+}
+@
+
+-}
 data Archive = Archive {
   id :: String,
   status :: String,

@@ -31,6 +31,7 @@ import           Network.HTTP.Types             ( renderQuery )
 import           OpenTok.Util
 import           OpenTok.Types
 
+-- | Information on user roles can be found at https://tokbox.com/developer/guides/create-token/
 data Role = Subscriber | Publisher | Moderator
 instance Show Role where
   show Subscriber = "subscriber"
@@ -38,19 +39,19 @@ instance Show Role where
   show Moderator = "moderator"
 
 data TokenOptions = TokenOptions {
-  role :: Role,
-  expireTime :: Maybe UTCTime,
-  connectionData :: Maybe String,
-  initialLayoutClassList :: Maybe [String]
+  _role :: Role,
+  _expireTime :: Maybe UTCTime,
+  _connectionData :: Maybe String,
+  _initialLayoutClassList :: Maybe [String]
 } deriving (Show, Generic)
 
 -- | Default token options
 tokenOpts :: TokenOptions
 tokenOpts = TokenOptions
-  { role                   = Publisher
-  , expireTime             = Nothing
-  , connectionData         = Nothing
-  , initialLayoutClassList = Nothing
+  { _role                   = Publisher
+  , _expireTime             = Nothing
+  , _connectionData         = Nothing
+  , _initialLayoutClassList = Nothing
   }
 
 -- | Replace invalid base64 chars
@@ -72,7 +73,7 @@ validSessionId sessionId key =
 
 -- | Validate token options
 validExpireTime :: TokenOptions -> IO Bool
-validExpireTime opts = case expireTime opts of
+validExpireTime opts = case _expireTime opts of
   Nothing     -> pure True
   Just expire -> do
     now <- getCurrentTime
@@ -93,15 +94,15 @@ encodeToken key secret sessionId opts = do
   now   <- getCurrentTime
   nonce <- nextRandom
   let tokenSentinel = "T1=="
-  let expire = maybe (utcToBS $ addUTCTime 86400 now) utcToBS (expireTime opts)
+  let expire = maybe (utcToBS $ addUTCTime 86400 now) utcToBS (_expireTime opts)
   let
     options =
       [ ("session_id"     , Just $ C8.pack sessionId)
       , ("create_time"    , Just $ utcToBS now)
       , ("expire_time"    , Just expire)
       , ("nonce"          , Just $ C8.pack $ show nonce)
-      , ("role"           , Just $ C8.pack $ show $ role opts)
-      , ("connection_data", C8.pack <$> connectionData opts)
+      , ("role"           , Just $ C8.pack $ show $ _role opts)
+      , ("connection_data", C8.pack <$> _connectionData opts)
       ] :: [(C8.ByteString, Maybe C8.ByteString)]
   let dataString = renderQuery False $ cleanTokenOptions options
   let sig  = SHA.showDigest $ SHA.hmacSha1 (L8.pack secret) (L8.fromStrict dataString)
