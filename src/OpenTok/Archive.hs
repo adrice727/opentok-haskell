@@ -5,7 +5,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module OpenTok.Archive
-  ( ArchiveOptions
+  ( OutputMode(Composed, Individual)
+  , ArchiveResolution(SD, HD)
+  , ArchiveOptions
     ( _hasAudio
     , _hasAudio
     , _name
@@ -13,7 +15,8 @@ module OpenTok.Archive
     , _resolution
     , _sessionId
     )
-  , ArchiveResolution(SD, HD)
+  , archiveOpts
+  , ArchiveStatus(Available, Expired, Failed, Paused, Started, Stopped, Uploaded)
   , Archive
     ( id
     , status
@@ -31,8 +34,6 @@ module OpenTok.Archive
     , duration
     , sessionId
     )
-  , OutputMode(Composed, Individual)
-  , archiveOpts
   , start
   , stop
   )
@@ -139,6 +140,8 @@ archiveOpts = ArchiveOptions
 data ArchiveStatus = Available | Expired | Failed | Paused | Started | Stopped | Uploaded deriving (Data, Generic, Typeable)
 deriveJSON defaultOptions { constructorTagModifier = strToLower } ''ArchiveStatus
 
+instance Show ArchiveStatus where
+  show = strToLower . showConstr . toConstr
 
 {-|
 

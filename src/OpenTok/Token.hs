@@ -31,13 +31,13 @@ import           Network.HTTP.Types             ( renderQuery )
 import           OpenTok.Util
 import           OpenTok.Types
 
--- | Information on user roles can be found at https://tokbox.com/developer/guides/create-token/
 data Role = Subscriber | Publisher | Moderator
 instance Show Role where
   show Subscriber = "subscriber"
   show Publisher = "publisher"
   show Moderator = "moderator"
 
+-- | Information on user roles and other options can be found at https://tokbox.com/developer/guides/create-token/
 data TokenOptions = TokenOptions {
   _role :: Role,
   _expireTime :: Maybe UTCTime,

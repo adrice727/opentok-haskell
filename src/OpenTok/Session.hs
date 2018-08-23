@@ -4,11 +4,13 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module OpenTok.Session
-  ( Session
-  , SessionOptions(_mediaMode, _archiveMode, _location)
+  (
+    ArchiveMode(Manual, Always)
   , MediaMode(Relayed, Routed)
-  , create
+  , SessionOptions(_mediaMode, _archiveMode, _location)
+  , Session(apiKey, sessionId, mediaMode, archiveMode)
   , sessionOpts
+  , create
   )
 where
 
@@ -64,18 +66,35 @@ instance ToJSON SessionOptions where
   toJSON = genericToJSON defaultOptions
     { omitNothingFields = True, fieldLabelModifier = drop 1 }
 
--- | Default options for Session creation
---
--- mediaMode: 'Relayed'
---
--- archiveMode: 'Manual'
---
--- location: Nothing
---
+{-|
+Default Session options
+
+@
+SessionOptions
+  { _mediaMode: 'Relayed'
+  , _archiveMode: 'Manual'
+  , _location: Nothing
+}
+@
+
+-}
 sessionOpts :: SessionOptions
 sessionOpts = SessionOptions Relayed Manual Nothing
 
--- | Represents an OpenTok Session
+{-|
+
+An OpenTok Session
+
+@
+Session {
+  apiKey :: 'String',
+  sessionId :: 'String',
+  mediaMode :: 'MediaMode',
+  archiveMode :: 'ArchiveMode'
+}
+@
+
+-}
 data Session = Session {
   apiKey :: String,
   sessionId :: String,
