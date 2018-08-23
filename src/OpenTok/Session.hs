@@ -106,9 +106,7 @@ fromProps opts props = Session
 -- | Create a new OpenTok Session
 create :: Client -> SessionOptions -> IO (Either OTError Session)
 create client opts = do
-  response <-
-    request client "/session/create/" opts :: IO
-      (Either ClientError [SessionProperties])
+  response <- postWithBody client "/session/create/" (Just opts) :: IO (Either ClientError [SessionProperties])
   case response of
     Right propsArray -> pure $ Right $ (fromProps opts . head) propsArray
     Left  e          -> pure $ Left $ message e

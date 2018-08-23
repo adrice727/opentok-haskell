@@ -9,6 +9,9 @@ type APISecret = String
 -- | An OpenTok Session identifier
 type SessionId = String
 
+-- | An OpenTok Archive identifier
+type ArchiveId = String
+
 -- | An IPv4 Address
 type IPAddress = String
 

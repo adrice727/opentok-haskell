@@ -34,6 +34,7 @@ module OpenTok.Archive
   , OutputMode(Composed, Individual)
   , archiveOpts
   , start
+  , stop
   )
 where
 
@@ -155,10 +156,15 @@ instance FromJSON Archive where
 start :: Client -> ArchiveOptions -> IO (Either OTError Archive)
 start c opts = do
   let path = "/v2/project/" <> _apiKey c <> "/archive"
-  response <- request c path opts :: IO (Either ClientError Archive)
+  response <- postWithBody c path (Just opts) :: IO (Either ClientError Archive)
   case response of
     Right archive -> pure $ Right archive
     Left  e       -> pure $ Left $ "Failed to start archive: " <> message e
 
-
-
+stop :: Client -> ArchiveId -> IO (Either OTError Archive)
+stop c aId = do
+  let path = "/v2/project/" <> _apiKey c <> "/archive/" <> aId <> "/stop"
+  response <- post c path :: IO (Either ClientError Archive)
+  case response of
+    Right archive -> pure $ Right archive
+    Left  e       -> pure $ Left $ "An error occurred in attempting to stop an archive: " <> message e

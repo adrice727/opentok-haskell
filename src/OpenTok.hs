@@ -65,7 +65,10 @@ generateToken ot = OpenTok.Token.generate (apiKey ot) (secret ot)
 startArchive :: OpenTok -> ArchiveOptions -> IO (Either OTError Archive)
 startArchive ot = OpenTok.Archive.start (client ot)
 
-  -- startArchive :: (OpenTok ot) => Maybe SessionOptions -> Session
+stopArchive :: OpenTok -> ArchiveId -> IO (Either OTError Archive)
+stopArchive ot = OpenTok.Archive.stop (client ot)
+
+
   -- stopArchive :: (OpenTok ot) => Maybe SessionOptions -> Session
   -- deleteArchive :: (OpenTok ot) => Maybe SessionOptions -> Session
   -- listArchives :: (OpenTok ot) => Maybe SessionOptions -> Session
