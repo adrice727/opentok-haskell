@@ -77,6 +77,9 @@ data Client = Client {
   _secret :: String
 }
 
+-- | HTTP Verbs
+data Method = GET | POST | DELETE deriving (Show)
+
 -- | Create claims for a JWT
 mkClaims :: String -> IO ClaimsSet
 mkClaims projectKey = do
@@ -140,11 +143,11 @@ deleteResource req = do
     204 -> pure $ Right "Ok"
     _   -> pure $ Left $ ClientError sc "Failed to delete resource"
 
-buildRequest :: Path -> SignedJWT -> IO Request
-buildRequest p jwt = do
+buildRequest :: Method -> Path -> SignedJWT -> IO Request
+buildRequest m p jwt = do
   initialRequest <- parseRequest $ "https://api.opentok.com" <> p
   let buildFn = if "v2" `isInfixOf` p then buildHeaders else buildV1Headers
-  pure $ initialRequest { method = "POST", requestHeaders = buildFn jwt }
+  pure $ initialRequest { method = C8.pack $ show m, requestHeaders = buildFn jwt }
 
 -- | Make a POST request
 post :: (FromJSON a) => Client -> Path -> IO (Either ClientError a)
@@ -153,7 +156,7 @@ post client p = do
   case eitherJWT of
     Left e -> pure $ Left e
     Right jwt -> do
-      request <- buildRequest p jwt
+      request <- buildRequest POST p jwt
       execute request
 
 -- | Make a POST request with a body
@@ -163,25 +166,25 @@ postWithBody client p b = do
   case eitherJWT of
     Left e -> pure $ Left $ e
     Right jwt -> do
-      request <- buildRequest p jwt
+      request <- buildRequest POST p jwt
       execute $ request { requestBody = RequestBodyLBS $ encode b }
 
--- | Make a GET request with a body
+-- | Make a GET request
 get :: (FromJSON a) => Client -> Path -> IO (Either ClientError a)
 get client p = do
   eitherJWT <- createJWT client
   case eitherJWT of
     Left e -> pure $ Left $ e
     Right jwt -> do
-      request <- buildRequest p jwt
-      execute $ request { method = "GET" }
+      request <- buildRequest GET p jwt
+      execute $ request
 
--- | Make a GET request with a body
+-- | Make a DELETE request
 del :: Client -> Path -> IO (Either ClientError String)
 del client p = do
   eitherJWT <- createJWT client
   case eitherJWT of
     Left e -> pure $ Left $ e
     Right jwt -> do
-      request <- buildRequest p jwt
-      deleteResource $ request { method = "DELETE" }
+      request <- buildRequest DELETE p jwt
+      deleteResource $ request

@@ -130,6 +130,7 @@ Default Archive options
 @
 ArchiveOptions
   { _hasVideo   = 'True'
+  , _hasVideo   = 'True'
   , _name       = 'Nothing'
   , _outputMode = 'Composed'
   , _resolution = 'SD'

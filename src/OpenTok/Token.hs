@@ -89,7 +89,7 @@ validExpireTime opts = case _expireTime opts of
   Nothing     -> pure True
   Just expire -> do
     now <- getCurrentTime
-    let maxExpire = addUTCTime (30 * 86400) now
+    let maxExpire = addUTCTime (days 30) now
     pure $ expire >= now && expire <= maxExpire
 
 -- | Remove pairs with Nothing values before creating query string
@@ -106,7 +106,7 @@ encodeToken key secret sessionId opts = do
   now   <- getCurrentTime
   nonce <- nextRandom
   let tokenSentinel = "T1=="
-  let expire = maybe (utcToBS $ addUTCTime 86400 now) utcToBS (_expireTime opts)
+  let expire = maybe (utcToBS $ addUTCTime (days 1) now) utcToBS (_expireTime opts)
   let
     options =
       [ ("session_id"     , Just $ C8.pack sessionId)
