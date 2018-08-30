@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 
 module OpenTok.Token where
 
@@ -21,21 +22,23 @@ import qualified Data.ByteString.Char8         as C8
 import qualified Data.ByteString.Lazy.Char8    as L8
                                                 ( pack,
                                                   fromStrict )
+import           Data.Data
 import           Data.Semigroup                 ( (<>) )
+import           Data.Strings                   ( strToLower )
 import           Data.Time.Clock
 import           Data.UUID                      ( )
 import           Data.UUID.V4                   ( nextRandom )
 import qualified Data.Text                     as T
 import           GHC.Generics
 import           Network.HTTP.Types             ( renderQuery )
+
 import           OpenTok.Util
 import           OpenTok.Types
 
-data Role = Subscriber | Publisher | Moderator
+data Role = Subscriber | Publisher | Moderator deriving (Data, Typeable)
+
 instance Show Role where
-  show Subscriber = "subscriber"
-  show Publisher = "publisher"
-  show Moderator = "moderator"
+  show = strToLower . showConstr . toConstr
 
 -- | Information on user roles and other options can be found at https://tokbox.com/developer/guides/create-token/
 data TokenOptions = TokenOptions {
