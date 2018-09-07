@@ -5,45 +5,15 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module OpenTok.Archive
-  ( OutputMode(Composed, Individual)
-  , ArchiveResolution(SD, HD)
-  , ArchiveOptions
-    ( _hasAudio
-    , _hasAudio
-    , _name
-    , _outputMode
-    , _resolution
-    , _sessionId
-    )
+  ( OutputMode(..)
+  , ArchiveResolution(..)
+  , ArchiveOptions(..)
   , archiveOpts
-  , ArchiveStatus(Available, Expired, Failed, Paused, Started, Stopped, Uploaded)
-  , Archive
-    ( id
-    , status
-    , createdAt
-    , size
-    , partnerId
-    , url
-    , resolution
-    , outputMode
-    , hasAudio
-    , hasVideo
-    , reason
-    , name
-    , updatedAt
-    , duration
-    , sessionId
-    )
-  , ListArchiveOptions
-   ( _forSessionId
-   , _count
-   , _offset
-   )
+  , ArchiveStatus(..)
+  , Archive(..)
+  , ListArchiveOptions(..)
   , listArchiveOpts
-  , ArchiveCollection
-  ( count
-  , items
-  )
+  , ArchiveCollection(..)
   , start
   , stop
   , list

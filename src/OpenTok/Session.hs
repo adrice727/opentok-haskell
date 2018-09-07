@@ -6,10 +6,10 @@
 
 module OpenTok.Session
   (
-    ArchiveMode(Manual, Always)
-  , MediaMode(Relayed, Routed)
-  , SessionOptions(_mediaMode, _archiveMode, _location)
-  , Session(apiKey, sessionId, mediaMode, archiveMode, location)
+    ArchiveMode(..)
+  , MediaMode(..)
+  , SessionOptions(..)
+  , Session(..)
   , sessionOpts
   , create
   )

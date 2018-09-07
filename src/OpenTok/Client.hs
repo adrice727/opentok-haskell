@@ -111,7 +111,7 @@ createJWT client = do
 buildHeaders :: SignedJWT -> RequestHeaders
 buildHeaders jwt =
   [
-    ( "Content-Type", "application/json")
+    ("Content-Type"  , "application/json")
   , ("Accept"        , "application/json")
   , ("X-OPENTOK-AUTH", toStrict $ encodeCompact jwt)
   ]

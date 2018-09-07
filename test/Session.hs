@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Session where
+module Session(spec) where
 
 import Control.Arrow
 import Control.Lens

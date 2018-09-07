@@ -1,5 +1,5 @@
 name: opentok
-version: 0.0.4
+version: 0.0.5
 synopsis: An OpenTok SDK for Haskell
 description:
   .
@@ -56,7 +56,7 @@ test-suite tests
   type:               exitcode-stdio-1.0
   hs-source-dirs:     test
   main-is:            Test.hs
-  other-modules:      Session, Config
+  other-modules:      Session, Token, Config
 
   build-depends:
     base
@@ -89,6 +89,7 @@ test-suite tests
     , opentok
 
     , hspec >= 2.0.0
+    , split >= 0.2.3
     , QuickCheck >= 2
     , quickcheck-instances
     , tasty
