@@ -6,9 +6,7 @@ import qualified  Codec.Binary.Base64.String  as B64
 import            Control.Arrow
 import            Control.Lens
 import            Control.Lens.Extras         ( is )
-import qualified  Data.Digest.Pure.SHA        as SHA
 import            Data.Either.Combinators     ( fromRight )
-import            Data.IP
 import            Data.List.Split
 import            Test.Hspec
 

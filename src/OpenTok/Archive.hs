@@ -237,7 +237,6 @@ An OpenTok Archive Collection
 ArchiveCollection {
   count :: 'Int'
   items :: ['Archive']
-  id :: 'String'
 }
 @
 

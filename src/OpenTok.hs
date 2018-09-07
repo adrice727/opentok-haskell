@@ -5,8 +5,8 @@ module OpenTok
   , opentok
   , createSession
   , generateToken
-  , Role(..)
   , Token
+  , Role(..)
   , TokenOptions(..)
   , tokenOpts
   , startArchive

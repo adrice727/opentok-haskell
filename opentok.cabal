@@ -56,7 +56,7 @@ test-suite tests
   type:               exitcode-stdio-1.0
   hs-source-dirs:     test
   main-is:            Test.hs
-  other-modules:      Session, Token, Config
+  other-modules:      Session, Token, Archive, Config
 
   build-depends:
     base
