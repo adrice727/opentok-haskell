@@ -3,6 +3,7 @@ import Test.Tasty.Hspec
 import Test.Tasty.QuickCheck
 
 import Session
+import Token
 
 
 main :: IO ()
@@ -13,4 +14,5 @@ main = do
 unitTestsIO :: IO TestTree
 unitTestsIO = do
   session <- testSpec "Session" Session.spec
-  return $ testGroup "Unit tests" [session]
+  token <- testSpec "Token" Token.spec
+  return $ testGroup "Unit tests" [session, token]
