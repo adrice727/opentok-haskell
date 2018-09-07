@@ -1,5 +1,5 @@
 name: opentok
-version: 0.0.4
+version: 0.0.5
 synopsis: An OpenTok SDK for Haskell
 description:
   .
@@ -49,6 +49,52 @@ library
       , transformers >= 0.5.2.0
     if flag(documentation)
         build-depends: hscolour == 1.20.*
+
+
+test-suite tests
+  default-language:   Haskell2010
+  type:               exitcode-stdio-1.0
+  hs-source-dirs:     test
+  main-is:            Test.hs
+  other-modules:      Session, Token, Archive, Config
+
+  build-depends:
+    base
+    , base-compat
+    , aeson
+    , aeson-casing
+    , aeson-compat
+    , base64-string
+    , bytestring
+    , containers
+    , convertible
+    , either
+    , http-client
+    , http-client-tls
+    , http-conduit
+    , http-types
+    , iproute
+    , jose
+    , lens
+    , monad-time
+    , unordered-containers
+    , SHA
+    , strings
+    , uuid
+    , utf8-string
+    , text
+    , time
+    , transformers
+
+    , opentok
+
+    , hspec >= 2.0.0
+    , split >= 0.2.3
+    , QuickCheck >= 2
+    , quickcheck-instances
+    , tasty
+    , tasty-hspec >= 1.0
+    , tasty-quickcheck
 
 flag documentation
     default: True

@@ -2,13 +2,14 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module OpenTok.Session
   (
-    ArchiveMode(Manual, Always)
-  , MediaMode(Relayed, Routed)
-  , SessionOptions(_mediaMode, _archiveMode, _location)
-  , Session(apiKey, sessionId, mediaMode, archiveMode)
+    ArchiveMode(..)
+  , MediaMode(..)
+  , SessionOptions(..)
+  , Session(..)
   , sessionOpts
   , create
   )
@@ -21,6 +22,7 @@ import           Data.Aeson.Casing              ( snakeCase )
 import           Data.Aeson.Types
 import           Data.Aeson.TH
 import           Data.Data
+import           Data.IP                        ( IPv4 )
 import           Data.Strings                   ( strToLower )
 import           GHC.Generics
 
@@ -30,7 +32,7 @@ import           OpenTok.Types
 -- | Relayed sessions will attempt to use peer-to-peer (p2p) connections.
 --
 -- Routed sessions will use the <https://tokbox.com/platform/multi-party OpenTok Media Router>
-data MediaMode = Relayed | Routed deriving (Data, Generic, Typeable)
+data MediaMode = Relayed | Routed deriving (Data, Eq, Generic, Typeable)
 
 instance Show MediaMode where
   show = strToLower . showConstr . toConstr
@@ -39,7 +41,7 @@ deriveJSON defaultOptions { constructorTagModifier = strToLower } ''MediaMode
 
 -- | Manual, as it implies, requires archives to be manually started and stopped.
 -- Always means that archives will automatically be created.
-data ArchiveMode = Manual | Always deriving (Data, Generic, Typeable)
+data ArchiveMode = Manual | Always deriving (Data, Eq, Generic, Typeable)
 
 instance Show ArchiveMode where
   show = strToLower . showConstr . toConstr
@@ -53,13 +55,16 @@ deriveJSON defaultOptions { constructorTagModifier = strToLower } ''ArchiveMode
 --
 -- 'ArchiveMode' specifies how archives will be created.
 --
--- An 'IPAddress' may be provided as a location hint which will
--- be when choosing an OpenTok Media Router for the session.
+-- An 'IPv4' address may be provided as a location hint which will
+-- be used in selecting an OpenTok Media Router for the session.
 data SessionOptions = SessionOptions {
   _mediaMode :: MediaMode,
   _archiveMode :: ArchiveMode,
-  _location :: Maybe IPAddress
+  _location :: Maybe IPv4
 } deriving(Show, Generic)
+
+instance ToJSON IPv4 where
+  toJSON = genericToJSON defaultOptions
 
 
 instance ToJSON SessionOptions where
@@ -99,7 +104,8 @@ data Session = Session {
   apiKey :: String,
   sessionId :: String,
   mediaMode :: MediaMode,
-  archiveMode :: ArchiveMode
+  archiveMode :: ArchiveMode,
+  location :: Maybe IPv4
 } deriving (Show)
 
 data SessionProperties = SessionProperties {
@@ -120,6 +126,7 @@ fromProps opts props = Session
   , sessionId   = _sessionId props
   , mediaMode   = _mediaMode opts
   , archiveMode = _archiveMode opts
+  , location    = _location opts
   }
 
 -- | Create a new OpenTok Session

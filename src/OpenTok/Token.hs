@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 
 module OpenTok.Token where
 
@@ -21,21 +22,23 @@ import qualified Data.ByteString.Char8         as C8
 import qualified Data.ByteString.Lazy.Char8    as L8
                                                 ( pack,
                                                   fromStrict )
+import           Data.Data
 import           Data.Semigroup                 ( (<>) )
+import           Data.Strings                   ( strToLower )
 import           Data.Time.Clock
 import           Data.UUID                      ( )
 import           Data.UUID.V4                   ( nextRandom )
 import qualified Data.Text                     as T
 import           GHC.Generics
 import           Network.HTTP.Types             ( renderQuery )
+
 import           OpenTok.Util
 import           OpenTok.Types
 
-data Role = Subscriber | Publisher | Moderator
+data Role = Subscriber | Publisher | Moderator deriving (Data, Typeable)
+
 instance Show Role where
-  show Subscriber = "subscriber"
-  show Publisher = "publisher"
-  show Moderator = "moderator"
+  show = strToLower . showConstr . toConstr
 
 -- | Information on user roles and other options can be found at https://tokbox.com/developer/guides/create-token/
 data TokenOptions = TokenOptions {
@@ -89,7 +92,7 @@ validExpireTime opts = case _expireTime opts of
   Nothing     -> pure True
   Just expire -> do
     now <- getCurrentTime
-    let maxExpire = addUTCTime (30 * 86400) now
+    let maxExpire = addUTCTime (days 30) now
     pure $ expire >= now && expire <= maxExpire
 
 -- | Remove pairs with Nothing values before creating query string
@@ -106,7 +109,7 @@ encodeToken key secret sessionId opts = do
   now   <- getCurrentTime
   nonce <- nextRandom
   let tokenSentinel = "T1=="
-  let expire = maybe (utcToBS $ addUTCTime 86400 now) utcToBS (_expireTime opts)
+  let expire = maybe (utcToBS $ addUTCTime (days 1) now) utcToBS (_expireTime opts)
   let
     options =
       [ ("session_id"     , Just $ C8.pack sessionId)
