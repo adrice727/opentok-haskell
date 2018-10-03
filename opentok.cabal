@@ -17,7 +17,7 @@ copyright: 2018 Aaron Rice
 
 library
     default-language:   Haskell2010
-    exposed-modules:    OpenTok, OpenTok.Session, OpenTok.Archive, OpenTok.Types
+    exposed-modules:    OpenTok, OpenTok.Session, OpenTok.Archive, OpenTok.Broadcast, OpenTok.Types
     other-modules:      OpenTok.Client, OpenTok.Token, OpenTok.Util
     hs-source-dirs:     src
     build-depends:

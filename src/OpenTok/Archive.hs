@@ -6,7 +6,7 @@
 
 module OpenTok.Archive
   ( OutputMode(..)
-  , ArchiveResolution(..)
+  , Resolution
   , ArchiveOptions(..)
   , archiveOpts
   , ArchiveStatus(..)
@@ -45,27 +45,6 @@ instance Show OutputMode where
 
 deriveJSON defaultOptions { constructorTagModifier = strToLower } ''OutputMode
 
--- | SD (Standard Definition 640 x 480)
---
--- HD (High Definition 1280 x 720)
---
-data ArchiveResolution = SD | HD
-
-instance Show ArchiveResolution where
-  show SD = "640x480 (SD)"
-  show HD = "1280x720 (HD)"
-
-instance ToJSON ArchiveResolution where
-  toJSON SD = String "640x480"
-  toJSON HD = String "1280x720"
-
-instance FromJSON ArchiveResolution where
-  parseJSON (String s) = case s of
-    "640x480" -> pure SD
-    "1280x720" -> pure HD
-    _ -> typeMismatch "Could not parse ArchiveResolution" (String s)
-  parseJSON x = typeMismatch "Expected String" x
-
 -- | Defines options for an Archive
 --
 -- sessionId: The session to be archived
@@ -87,7 +66,7 @@ data ArchiveOptions =  ArchiveOptions {
   _hasVideo :: Bool,
   _name :: Maybe String,
   _outputMode :: OutputMode,
-  _resolution :: ArchiveResolution,
+  _resolution :: Resolution,
   _sessionId :: SessionId
 } deriving (Generic, Show)
 
@@ -138,7 +117,7 @@ Archive {
   size :: 'Int',
   partnerId :: 'Int',
   url :: Maybe 'String',
-  resolution :: 'ArchiveResolution',
+  resolution :: 'Resolution',
   outputMode :: 'OutputMode',
   hasAudio :: 'Bool',
   hasVideo :: 'Bool',
@@ -158,7 +137,7 @@ data Archive = Archive {
   size :: Int,
   partnerId :: Int,
   url :: Maybe String,
-  resolution :: ArchiveResolution,
+  resolution :: Resolution,
   outputMode :: OutputMode,
   hasAudio :: Bool,
   hasVideo :: Bool,

@@ -13,6 +13,7 @@ module OpenTok
   , stopArchive
   , listArchives
   , deleteArchive
+  , startBroadcast
   )
 where
 
@@ -21,6 +22,7 @@ import           Prelude.Compat
 import           Data.Semigroup                 ( (<>) )
 
 import           OpenTok.Archive
+import           OpenTok.Broadcast
 import           OpenTok.Session
 import           OpenTok.Token
 import           OpenTok.Client
@@ -93,3 +95,7 @@ listArchives ot = OpenTok.Archive.list (client ot)
 --
 deleteArchive :: OpenTok -> ArchiveId -> IO (Either OTError ArchiveId)
 deleteArchive ot = OpenTok.Archive.delete (client ot)
+
+
+startBroadcast :: OpenTok -> BroadcastOptions -> IO (Either OTError Broadcast)
+startBroadcast ot = OpenTok.Broadcast.start (client ot)
